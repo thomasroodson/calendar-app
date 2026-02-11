@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import '@fontsource/fira-mono';
+
+@plugin 'daisyui' {
+  themes: light --default, dark --prefersdark;
+}
