@@ -1,46 +1,44 @@
 <script lang="ts">
-    import { calendarStore } from '$lib/stores/calendar.svelte';
-    import { getWeekDays, formatDayHeader, filterEventsByDate } from '$lib/utils/dateUtils';
-    import EventCard from './EventCard.svelte';
+	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
+	import DayView from './views/DayView.svelte';
+	import WeekView from './views/WeekView.svelte';
+	import MonthView from './views/MonthView.svelte';
+	import { ChevronLeftIcon, ChevronRightIcon } from '$lib/components/icons';
 
-    const weekDays = $derived(getWeekDays(calendarStore.currentDate));
-    const today = new Date().toDateString();
+	let view = $state('month'); 
 </script>
 
-<div class="flex flex-col h-full w-full bg-base-100 border border-base-200 rounded-xl overflow-hidden shadow-sm">
-    
-    <!-- Cabeçalho -->
-    <div class="grid grid-cols-7 border-b border-base-200 bg-base-200/30">
-        {#each weekDays as day}
-            <div class="py-3 flex flex-col items-center border-r border-base-200 last:border-r-0">
-                <span class="text-[11px] font-bold tracking-wider uppercase text-base-content/50">
-                    {formatDayHeader(day).split(' ')[0]}
-                </span>
-                <div class="mt-1">
-                    <span class="text-lg font-medium w-9 h-9 flex items-center justify-center rounded-full transition-all
-                        {day.toDateString() === today 
-                            ? 'bg-primary text-primary-content shadow-md' 
-                            : 'hover:bg-base-200 text-base-content'}">
-                        {day.getDate()}
-                    </span>
-                </div>
-            </div>
-        {/each}
-    </div>
+<!-- Header fixo -->
+<header class="calendar-header flex items-center justify-between bg-base-100 px-6 py-4 rounded-2xl border border-base-200 shadow-sm mb-6">
+	<div class="flex items-center gap-4">
+		<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-content font-semibold text-lg shadow-sm ml-2">
+			12
+		</div>
+		<h2 class="text-xl font-normal">Março de 2026</h2>
+		<button class="btn btn-ghost btn-sm border border-base-300 px-4 ml-2">Hoje</button>
+	</div>
 
-    <!-- Corpo (Apenas UM grid e UM loop) -->
-    <div class="grid grid-cols-7 flex-1 divide-x divide-base-200 overflow-y-auto scrollbar-hide">
-        {#each weekDays as day}
-            <div class="min-h-[500px] p-2 bg-transparent hover:bg-base-200/5 transition-colors duration-300">
-                {#each filterEventsByDate(calendarStore.events, day) as event (event.id)}
-                    <EventCard {event} />
-                {/each}
-            </div>
-        {/each}
-    </div>
+	<div class="flex items-center gap-4">
+		<select bind:value={view} class="select select-sm select-bordered font-medium no-opacity-fix">
+			<option value="day">Dia</option>
+			<option value="week">Semana</option>
+			<option value="month">Mês</option>
+		</select>
+		<div class="join border border-base-200">
+			<button class="btn btn-ghost btn-sm join-item"><ChevronLeftIcon size={16} /></button>
+			<button class="btn btn-ghost btn-sm join-item"><ChevronRightIcon size={16} /></button>
+		</div>
+		<ThemeToggle />
+	</div>
+</header>
+
+<!-- Container das Views -->
+<div class="h-full bg-base-100 border border-base-200 rounded-xl shadow-sm overflow-hidden">
+    {#if view === 'day'}
+        <DayView />
+    {:else if view === 'week'}
+        <WeekView />
+    {:else}
+        <MonthView />
+    {/if}
 </div>
-
-<style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-</style>

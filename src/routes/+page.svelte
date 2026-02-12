@@ -1,40 +1,65 @@
 <script lang="ts">
-	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
 	import CalendarGrid from '$lib/components/calendar/CalendarGrid.svelte';
-    import { calendarStore } from '$lib/stores/calendar.svelte';
-	import { formatMonthYear } from '$lib/utils/dateUtils';
+	import Sidebar from '$lib/components/calendar/Sidebar.svelte';
+	import { HamburgerIcon, SearchIcon } from '$lib/components/icons';
 
-    const title = $derived(formatMonthYear(calendarStore.currentDate));
+	let isSidebarOpen: boolean = true;
 </script>
 
+<!-- ISSO define o título na aba do navegador -->
 <svelte:head>
-	<title>Calendário App</title>
-	<meta name="description" content="Calendário App" />
+	<title>Agenda</title>
 </svelte:head>
 
-<main class="p-4 md:p-8 max-w-7xl mx-auto h-screen flex flex-col gap-6">
-    <!-- Cabeçalho Superior -->
-    <header class="flex items-center justify-between bg-base-100 px-6 py-4 rounded-2xl border border-base-200 shadow-sm">
-    <div class="flex items-center gap-6">
-        <h1 class="text-2xl font-semibold tracking-tight text-base-content">
-            {title}
-        </h1>
-        <button class="btn btn-ghost btn-sm border-base-300 hover:border-primary normal-case font-medium">
-            Hoje
-        </button>
-    </div>
-    
-    <div class="flex items-center gap-2">
-        <div class="join border border-base-200">
-            <button class="btn btn-ghost btn-sm join-item">❮</button>
-            <button class="btn btn-ghost btn-sm join-item">❯</button>
-        </div>
-		<ThemeToggle />        
-    </div>
-</header>
+<div class="h-screen flex flex-col bg-base-200 overflow-hidden">
+	<!-- Header Superior Global -->
+	<header class="flex items-center justify-between gap-4 px-4 py-3 bg-base-100 border-b border-base-300">
+		
+		<!-- left: hamburger + brand -->
+		<div class="flex items-center gap-3">
+			<button
+				class="btn btn-ghost btn-circle btn-sm"
+				onclick={() => isSidebarOpen = !isSidebarOpen}
+				aria-label="Alternar menu"
+				type="button"
+			>
+				<HamburgerIcon size={20} />
+			</button>
+	  
+			<div class="flex items-center gap-2 ml-1">
+				<span class="text-xl font-normal text-base-content opacity-80">Agenda</span>
+			</div>
+		</div>
+	  
+		<!-- right: search -->
+		<div class="flex items-center gap-3">
+			<label for="global-search" class="sr-only">Pesquisar</label>
+	  
+			<div class="relative flex items-center">
+				<!-- Container do ícone com posicionamento forçado -->
+				<div class="absolute left-4 z-10 pointer-events-none flex items-center justify-center text-base-content/50">
+					<SearchIcon size={20} />
+				</div>
+				
+				<input
+					id="global-search"
+					type="search"
+					placeholder="Pesquisar eventos"
+					class="input input-bordered pl-12 pr-4 h-11 rounded-full w-[min(560px,90vw)] max-w-[560px] bg-base-100 border-base-300 focus:border-primary transition-all"
+				/>
+			</div>
+		</div>
+	</header>
 
-    <!-- O Grid do Calendário -->
-    <section class="flex-1 overflow-hidden">
-        <CalendarGrid />
-    </section>
-</main>
+	<div class="flex flex-1 overflow-hidden">
+		{#if isSidebarOpen}
+			<div class="h-full border-r border-base-300">
+				<Sidebar />
+			</div>
+		{/if}
+
+		<main class="flex-1 flex flex-col min-h-0 p-4 md:p-6 overflow-hidden pb-5 box-border">
+			<CalendarGrid />
+		</main>
+	</div>
+</div>

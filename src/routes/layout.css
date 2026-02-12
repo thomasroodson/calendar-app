@@ -4,3 +4,22 @@
 @plugin 'daisyui' {
   themes: light --default, dark --prefersdark;
 }
+
+*:focus, *:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+body {
+    /* No dark mode do Google, o fundo é quase preto e o grid é um cinza muito escuro */
+    @apply bg-base-200 min-h-screen; 
+}
+
+.calendar-container {
+    @apply bg-base-100 rounded-3xl border border-base-300 shadow-sm;
+}
+
+select.select {
+    @apply bg-transparent border-none hover:bg-base-200 transition-colors cursor-pointer font-medium;
+    outline: none !important;
+}
