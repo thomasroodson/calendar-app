@@ -1,25 +1,28 @@
-@import 'tailwindcss';
-@import '@fontsource/fira-mono';
+@import "tailwindcss";
+@import "@fontsource/fira-mono";
 
-@plugin 'daisyui' {
-  themes: light --default, dark --prefersdark;
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
 }
 
-*:focus, *:focus-within {
-    outline: none !important;
-    box-shadow: none !important;
+*:focus,
+*:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 body {
-    /* No dark mode do Google, o fundo é quase preto e o grid é um cinza muito escuro */
-    @apply bg-base-200 min-h-screen; 
+  /* No dark mode do Google, o fundo é quase preto e o grid é um cinza muito escuro */
+  @apply min-h-screen bg-base-200;
 }
 
 .calendar-container {
-    @apply bg-base-100 rounded-3xl border border-base-300 shadow-sm;
+  @apply rounded-3xl border border-base-300 bg-base-100 shadow-sm;
 }
 
 select.select {
-    @apply bg-transparent border-none hover:bg-base-200 transition-colors cursor-pointer font-medium;
-    outline: none !important;
+  @apply cursor-pointer border-none bg-transparent font-medium transition-colors hover:bg-base-200;
+  outline: none !important;
 }

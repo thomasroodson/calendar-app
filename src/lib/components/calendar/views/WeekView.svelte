@@ -1,59 +1,92 @@
 <script lang="ts">
-	// Geramos as 24 horas do dia
-	const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
-	
-	// Dias da semana para o cabeçalho
-	const weekDays: string[] = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-	
-	// Array fixo para as 7 colunas
-	const columns: number[] = Array.from({ length: 7 }, (_, i) => i);
+  import type { CalendarEvent } from "$lib/types/calendar";
+  import EventCard from "$lib/components/calendar/EventCard.svelte";
+  import { toDayKey } from "$lib/utils/dateUtils";
+  import { clampEventToDay } from "$lib/utils/dateUtils";
+
+  let { days, eventsByDay }: { days: Date[]; eventsByDay: Map<string, CalendarEvent[]> } = $props();
+
+  const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+
+  const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+
+  const HOUR_HEIGHT = 80;
+  const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
+  const MIN_EVENT_HEIGHT = 28;
+
+  const getEventStyle = (event: CalendarEvent, day: Date) => {
+    const rawStart = new Date(event.startDate);
+    const rawEnd = new Date(event.endDate);
+
+    const { start, end, isVisible } = clampEventToDay(rawStart, rawEnd, day);
+    if (!isVisible) return "display:none;";
+
+    const startMinutes = start.getHours() * 60 + start.getMinutes();
+    const endMinutes = end.getHours() * 60 + end.getMinutes();
+
+    const top = startMinutes * MINUTE_HEIGHT;
+    const rawHeight = (endMinutes - startMinutes) * MINUTE_HEIGHT;
+    const height = Math.max(rawHeight, MIN_EVENT_HEIGHT);
+
+    return `top:${top}px; height:${height}px; left:6px; right:6px; position:absolute;`;
+  };
 </script>
 
-<div class="flex flex-col h-full w-full overflow-hidden bg-base-100 min-h-0">
-	<!-- Cabeçalho dos Dias (Fixo no topo) -->
-	<div class="grid grid-cols-[60px_1fr] border-b border-base-300 bg-base-200/20 flex-none pr-4">
-		<div class="border-r border-base-300"></div>
-		<div class="grid grid-cols-7 divide-x divide-base-300">
-			{#each weekDays as day}
-				<div class="py-3 text-center">
-					<span class="text-[11px] font-bold opacity-50 uppercase tracking-widest">{day}</span>
-				</div>
-			{/each}
-		</div>
-	</div>
+<div class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-base-100">
+  <!-- Cabeçalho dos Dias -->
+  <div class="grid flex-none grid-cols-[60px_1fr] border-b border-base-300 bg-base-200/20 pr-4">
+    <div class="border-r border-base-300"></div>
 
-	<!-- Área de Scroll (Ocupa o resto da altura) -->
-	<div class="flex-1 overflow-y-auto min-h-0">
-		<div class="grid grid-cols-[60px_1fr] relative min-h-fit">
-			
-			<!-- Coluna Lateral de Horas -->
-			<div class="bg-base-50/50 border-r border-base-200 flex-none">
-				{#each hours as hour}
-					<div class="h-20 pr-2 text-[11px] text-right opacity-40 font-medium pt-1">
-						{hour.toString().padStart(2, '0')}:00
-					</div>
-				{/each}
-			</div>
+    <div class="grid grid-cols-7 divide-x divide-base-300">
+      {#each days as d, i}
+        <div class="py-3 text-center">
+          <span class="text-[11px] font-bold tracking-widest uppercase opacity-50">
+            {weekDaysShort[i]}
+          </span>
+          <div class="mt-1 text-xs font-medium opacity-70">
+            {d.getDate().toString().padStart(2, "0")}
+          </div>
+        </div>
+      {/each}
+    </div>
+  </div>
 
-			<!-- Grid de Conteúdo (7 Colunas) -->
-			<div class="grid grid-cols-7 divide-x divide-base-200 relative">
-				<!-- Linhas Horizontais de Fundo (Google Style) -->
-				<div class="absolute inset-0 pointer-events-none">
-					{#each hours as _}
-						<div class="h-20 border-b border-base-200/40"></div>
-					{/each}
-				</div>
+  <!-- Área de Scroll -->
+  <div class="min-h-0 flex-1 overflow-y-auto">
+    <div class="relative grid min-h-fit grid-cols-[60px_1fr]">
+      <!-- Coluna de Horas -->
+      <div class="bg-base-50/50 flex-none border-r border-base-200">
+        {#each hours as hour}
+          <div class="h-20 pt-1 pr-2 text-right text-[11px] font-medium opacity-40">
+            {hour.toString().padStart(2, "0")}:00
+          </div>
+        {/each}
+      </div>
 
-				<!-- Colunas Interativas -->
-				{#each columns as _}
-					<div 
-						class="h-full min-h-[1920px] hover:bg-base-200/5 transition-colors cursor-cell relative"
-						role="presentation"
-					>
-						<!-- Aqui entrarão os EventCards posicionados absolutamente -->
-					</div>
-				{/each}
-			</div>
-		</div>
-	</div>
+      <!-- Grid 7 colunas -->
+      <div class="relative grid grid-cols-7 divide-x divide-base-200">
+        <!-- Linhas horizontais -->
+        <div class="pointer-events-none absolute inset-0">
+          {#each hours as _}
+            <div class="h-20 border-b border-base-200/40"></div>
+          {/each}
+        </div>
+
+        {#each days as day (day.toISOString())}
+          {@const key = toDayKey(day)}
+          {@const dayEvents = eventsByDay.get(key) ?? []}
+
+          <div
+            class="relative h-full min-h-[1920px] cursor-cell transition-colors hover:bg-base-200/5"
+          >
+            {#each dayEvents as event (event.id)}
+              <div style={getEventStyle(event, day)}>
+                <EventCard {event} stretch />
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    </div>
+  </div>
 </div>
