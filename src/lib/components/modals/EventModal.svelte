@@ -1,90 +1,72 @@
 <script lang="ts">
+  import type { CalendarEvent } from "$lib/types/calendar";
   import { XIcon } from "$lib/components/icons";
-  let { isOpen }: { isOpen: boolean } = $props();
+  import EventForm from "$lib/components/modals/EventForm.svelte";
+
+  type Mode = "create" | "edit";
+
+  let {
+    isOpen,
+    mode = "create",
+    event = null,
+    initialStart = null,
+    initialEnd = null,
+    onClose
+  }: {
+    isOpen: boolean;
+    mode?: Mode;
+    event?: CalendarEvent | null;
+    initialStart?: Date | null;
+    initialEnd?: Date | null;
+    onClose: () => void;
+  } = $props();
+
+  let isFormValid = $state(true);
+
+  const title = $derived.by(() => (mode === "edit" ? "Editar evento" : "Adicionar evento"));
+  const subtitle = $derived.by(() =>
+    mode === "edit"
+      ? "Atualize os detalhes abaixo para editar este evento."
+      : "Preencha os detalhes abaixo para criar um novo evento."
+  );
 </script>
 
-<!-- src/components/modal/EventModal.svelte -->
 {#if isOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <!-- Backdrop -->
+  <button
+    class="fixed inset-0 z-50 bg-black/50"
+    aria-label="Fechar modal"
+    type="button"
+    onclick={onClose}
+  ></button>
+
+  <!-- Modal -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xl rounded-2xl bg-base-100 shadow-xl">
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-base-200 px-6 py-4">
         <div>
-          <h3 class="text-lg font-semibold">Adicionar evento</h3>
-          <p class="mt-1 text-sm text-base-content/70">
-            Preencha os detalhes abaixo para criar um novo evento.
-          </p>
+          <h3 class="text-lg font-semibold">{title}</h3>
+          <p class="mt-1 text-sm text-base-content/70">{subtitle}</p>
         </div>
 
-        <button class="btn btn-ghost btn-sm" aria-label="Fechar">
-          <XIcon size={20} color="currentColor" />
+        <button class="btn btn-ghost btn-sm" type="button" onclick={onClose} aria-label="Fechar">
+          <XIcon size={20} />
         </button>
       </div>
 
-      <!-- Body (temporário: form fixo aqui; depois vira componente separado) -->
+      <!-- Body -->
       <div class="px-6 py-5">
-        <div class="space-y-4">
-          <!-- Título -->
-          <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">Título</span>
-            </div>
-            <input
-              type="text"
-              class="input-bordered input w-full"
-              placeholder="Ex.: Reunião com equipe"
-              value=""
-            />
-          </label>
-
-          <!-- Descrição -->
-          <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">Descrição</span>
-            </div>
-            <textarea
-              class="textarea-bordered textarea w-full"
-              rows="3"
-              placeholder="Detalhes, links, observações..."
-            ></textarea>
-          </label>
-
-          <!-- Datas -->
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <label class="form-control w-full">
-              <div class="label">
-                <span class="label-text">Início</span>
-              </div>
-              <input
-                type="datetime-local"
-                class="input-bordered input w-full"
-                value="2026-02-12T09:00"
-              />
-            </label>
-
-            <label class="form-control w-full">
-              <div class="label">
-                <span class="label-text">Fim</span>
-              </div>
-              <input
-                type="datetime-local"
-                class="input-bordered input w-full"
-                value="2026-02-12T10:00"
-              />
-            </label>
-          </div>
-
-          <!-- Observação fixa (só pra preencher visual) -->
-          <div class="alert">
-            <span class="text-sm"> Dica: você poderá editar ou excluir esse evento depois. </span>
-          </div>
-        </div>
+        <EventForm {mode} {event} {initialStart} {initialEnd} onValidityChange={(valid: boolean) => (isFormValid = valid)} />
       </div>
 
       <!-- Footer -->
       <div class="flex items-center justify-end gap-2 border-t border-base-200 px-6 py-4">
-        <button class="btn btn-ghost">Cancelar</button>
-        <button class="btn btn-primary">Salvar evento</button>
+        <button class="btn btn-ghost" type="button" onclick={onClose}> Cancelar </button>
+
+        <button class="btn btn-primary" type="submit" form="event-form" disabled={!isFormValid}>
+          {mode === "edit" ? "Salvar alterações" : "Salvar evento"}
+        </button>
       </div>
     </div>
   </div>

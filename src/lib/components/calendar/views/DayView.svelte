@@ -3,7 +3,17 @@
   import EventCard from "$lib/components/calendar/EventCard.svelte";
   import { clampEventToDay } from "$lib/utils/dateUtils";
 
-  let { date, events }: { date: Date; events: CalendarEvent[] } = $props();
+  let {
+    date,
+    events,
+    onEmptySlotClick,
+    onEventClick
+  }: {
+    date: Date;
+    events: CalendarEvent[];
+    onEmptySlotClick?: (start: Date) => void;
+    onEventClick?: (event: CalendarEvent) => void;
+  } = $props();
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 

@@ -5,10 +5,14 @@
 
   let {
     currentDate,
-    eventsByDay
+    eventsByDay,
+    onEmptySlotClick,
+    onEventClick
   }: {
     currentDate: Date;
     eventsByDay: Map<string, CalendarEvent[]>;
+    onEmptySlotClick?: (start: Date) => void;
+    onEventClick?: (event: CalendarEvent) => void;
   } = $props();
 
   const weekDays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];

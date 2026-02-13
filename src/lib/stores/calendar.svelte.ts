@@ -63,5 +63,31 @@ const mockEvents: CalendarEvent[] = [
 export const calendarStore = $state({
   events: mockEvents,
   loading: false,
-  currentDate: new Date(2026, 1, 11) // Data fixa para bater com o mock durante o dev
+  currentDate: new Date("2026-02-12")
 });
+
+const nowISO = () => new Date().toISOString();
+const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+export const createEvent = (payload: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">) => {
+  const e: CalendarEvent = {
+    ...payload,
+    id: makeId(),
+    createdAt: nowISO(),
+    updatedAt: nowISO()
+  };
+  calendarStore.events = [e, ...calendarStore.events];
+};
+
+export const updateEvent = (
+  id: string,
+  payload: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">
+) => {
+  calendarStore.events = calendarStore.events.map((e) =>
+    e.id === id ? { ...e, ...payload, updatedAt: nowISO() } : e
+  );
+};
+
+export const deleteEvent = (id: string) => {
+  calendarStore.events = calendarStore.events.filter((e) => e.id !== id);
+};
