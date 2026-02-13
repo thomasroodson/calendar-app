@@ -77,35 +77,40 @@
 >
   <div class="flex items-center gap-4">
     <div
-      class="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-content shadow-sm"
+      class="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-content shadow-sm md:h-10 md:w-10"
     >
       {dayBadge}
     </div>
 
-    <h2 class="text-xl font-normal capitalize">{headerLabel}</h2>
+    <h2 class="font-normal md:text-xl">{headerLabel}</h2>
 
-    <button class="btn ml-2 border border-base-300 px-4 btn-ghost btn-sm" onclick={goToday}>
+    <button
+      class="btn ml-2 hidden border border-base-300 px-4 btn-ghost btn-sm md:block"
+      onclick={goToday}
+    >
       Hoje
     </button>
   </div>
 
-  <div class="flex items-center gap-4">
-    <select bind:value={view} class="select-bordered no-opacity-fix select select-sm font-medium">
+  <div class="flex flex-col items-center gap-4 md:flex-row">
+    <select bind:value={view} class="select-bordered select select-sm font-medium">
       <option value="day">Dia</option>
       <option value="week">Semana</option>
       <option value="month">Mês</option>
     </select>
 
-    <div class="join border border-base-200">
-      <button class="btn join-item btn-ghost btn-sm" onclick={goPrev}>
-        <ChevronLeftIcon size={16} />
-      </button>
-      <button class="btn join-item btn-ghost btn-sm" onclick={goNext}>
-        <ChevronRightIcon size={16} />
-      </button>
-    </div>
+    <div class="flex items-center gap-4">
+      <div class="join border border-base-200">
+        <button class="btn join-item btn-ghost btn-sm" onclick={goPrev}>
+          <ChevronLeftIcon size={16} />
+        </button>
+        <button class="btn join-item btn-ghost btn-sm" onclick={goNext}>
+          <ChevronRightIcon size={16} />
+        </button>
+      </div>
 
-    <ThemeToggle />
+      <ThemeToggle />
+    </div>
   </div>
 </header>
 
@@ -120,3 +125,9 @@
     <MonthView {currentDate} {eventsByDay} />
   {/if}
 </div>
+
+<style>
+  select.select {
+    background-color: hsl(var(--b1)) !important;
+  }
+</style>

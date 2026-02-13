@@ -40,8 +40,22 @@
             {day.getDate()}
           </span>
 
-          <!-- MVP: eventos em lista (limitado) -->
-          <div class="mt-2 flex-1 space-y-1 overflow-hidden">
+          <!-- MOBILE (<768px): apenas bolinhas -->
+          {#if dayEvents.length > 0}
+            <div class="mt-2 flex items-center justify-center gap-1 md:hidden">
+              {#each dayEvents.slice(0, 3) as event (event.id)}
+                <span class="h-1.5 w-1.5 rounded-full" style={`background-color:${event.color};`}
+                ></span>
+              {/each}
+
+              {#if dayEvents.length > 3}
+                <span class="text-[10px] opacity-60">+{dayEvents.length - 3}</span>
+              {/if}
+            </div>
+          {/if}
+
+          <!-- DESKTOP (>=768px): lista de eventos -->
+          <div class="mt-2 hidden flex-1 space-y-1 overflow-hidden md:block">
             {#each dayEvents.slice(0, 2) as event (event.id)}
               <EventCard {event} />
             {/each}

@@ -1,13 +1,11 @@
 <script lang="ts">
   import type { CalendarEvent } from "$lib/types/calendar";
   import EventCard from "$lib/components/calendar/EventCard.svelte";
-  import { toDayKey } from "$lib/utils/dateUtils";
-  import { clampEventToDay } from "$lib/utils/dateUtils";
+  import { toDayKey, clampEventToDay } from "$lib/utils/dateUtils";
 
   let { days, eventsByDay }: { days: Date[]; eventsByDay: Map<string, CalendarEvent[]> } = $props();
 
   const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
-
   const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
   const HOUR_HEIGHT = 80;
@@ -34,7 +32,7 @@
 
 <div class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-base-100">
   <!-- Cabeçalho dos Dias -->
-  <div class="grid flex-none grid-cols-[60px_1fr] border-b border-base-300 bg-base-200/20 pr-4">
+  <div class="grid flex-none grid-cols-[60px_1fr] border-b border-base-300 bg-base-200/20 md:pr-4">
     <div class="border-r border-base-300"></div>
 
     <div class="grid grid-cols-7 divide-x divide-base-300">
@@ -81,7 +79,15 @@
           >
             {#each dayEvents as event (event.id)}
               <div style={getEventStyle(event, day)}>
-                <EventCard {event} stretch />
+                <!-- MOBILE: compacto (evita esmagar título e ficar "E..") -->
+                <div class="md:hidden">
+                  <EventCard {event} stretch compact />
+                </div>
+
+                <!-- DESKTOP -->
+                <div class="hidden md:block">
+                  <EventCard {event} stretch />
+                </div>
               </div>
             {/each}
           </div>

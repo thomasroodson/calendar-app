@@ -4,7 +4,7 @@
 </script>
 
 <!-- Forçamos h-screen e flex-col no nível mais alto possível -->
-<div class="flex h-screen w-screen flex-col overflow-hidden bg-red-500/10">
+<div class="flex h-screen w-screen flex-col bg-red-500/10 md:overflow-hidden">
   {@render children()}
 </div>
 
