@@ -32,7 +32,7 @@
   <div class="grid h-full flex-1 grid-cols-7 grid-rows-5 divide-x divide-y divide-base-200">
     {#each gridDates as day}
       <div
-        class="group flex min-h-0 cursor-pointer flex-col bg-base-100 p-2 transition-colors hover:bg-base-200/30"
+        class="group flex min-h-0 cursor-default flex-col bg-base-100 p-2 transition-colors hover:bg-base-200/30"
       >
         {#if day}
           {@const key = toDayKey(day)}

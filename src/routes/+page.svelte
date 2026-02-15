@@ -1,6 +1,7 @@
 <script lang="ts">
   import CalendarGrid from "$lib/components/calendar/CalendarGrid.svelte";
   import Sidebar from "$lib/components/calendar/Sidebar.svelte";
+  import EventPopover from "$lib/components/calendar/EventPopover.svelte";
   import { HamburgerIcon, SearchIcon } from "$lib/components/icons";
   import EventModal from "$lib/components/modals/EventModal.svelte";
   import type { CalendarEvent } from "$lib/types/calendar";
@@ -16,6 +17,9 @@
   let initialStart = $state<Date | null>(null);
   let initialEnd = $state<Date | null>(null);
 
+  let isPopoverOpen = $state(false);
+  let anchorRect = $state<DOMRect | null>(null);
+
   const closeModal = () => {
     isModalOpen = false;
     selectedEvent = null;
@@ -26,6 +30,7 @@
   const openCreate = (start?: Date) => {
     modalMode = "create";
     selectedEvent = null;
+    closePopover();
 
     if (start) {
       initialStart = start;
@@ -44,6 +49,25 @@
     initialStart = null;
     initialEnd = null;
     isModalOpen = true;
+  };
+
+  type ViewMode = "day" | "week" | "month";
+  let view = $state<ViewMode>("week");
+
+  const handleSelectDay = () => {
+    view = "day";
+  };
+
+  const openPopover = (event: CalendarEvent, rect?: DOMRect) => {
+    selectedEvent = event;
+    anchorRect = rect ?? null;
+    isPopoverOpen = true;
+  };
+
+  const closePopover = () => {
+    isPopoverOpen = false;
+    selectedEvent = null;
+    anchorRect = null;
   };
 </script>
 
@@ -84,7 +108,7 @@
           id="global-search"
           type="search"
           placeholder="Pesquisar eventos"
-          class="input-bordered input h-11 w-[min(560px,90vw)] max-w-[560px] rounded-full border-base-300 bg-base-100 pr-4 pl-12 transition-all focus:border-primary"
+          class="input-bordered input h-11 max-w-[560px] min-w-[290px] rounded-full border-base-300 bg-base-100 pr-4 pl-12 transition-all focus:border-primary md:w-[min(560px,90vw)]"
         />
       </div>
     </div>
@@ -94,7 +118,7 @@
     {#if isSidebarOpen}
       <div class="h-auto border-base-300 md:h-full md:border-r">
         <!-- ✅ Sidebar emite ação -->
-        <Sidebar onCreate={() => openCreate()} />
+        <Sidebar onCreate={() => openCreate()} onSelectDay={handleSelectDay} />
       </div>
     {/if}
 
@@ -102,11 +126,14 @@
       <!-- ✅ Grid emite ações -->
       <CalendarGrid
         onEmptySlotClick={(start: Date) => openCreate(start)}
-        onEventClick={(event: CalendarEvent) => openEdit(event)}
+        onEventClick={(event: CalendarEvent, rect?: DOMRect) => openPopover(event, rect)}
+        bind:view
       />
     </main>
   </div>
 </div>
+
+<EventPopover isOpen={isPopoverOpen} event={selectedEvent} {anchorRect} onClose={closePopover} />
 
 <!-- ✅ Modal controlado pela page -->
 <EventModal

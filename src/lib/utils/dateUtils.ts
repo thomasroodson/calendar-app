@@ -155,10 +155,12 @@ export const formatDayHeader = (date: Date): string => {
 };
 
 export const formatMonthYear = (date: Date): string => {
-  return date.toLocaleDateString("pt-BR", {
-    month: "long",
-    year: "numeric"
-  });
+  const month = date.toLocaleDateString("pt-BR", { month: "long" });
+  const year = date.toLocaleDateString("pt-BR", { year: "numeric" });
+
+  const formattedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+
+  return `${formattedMonth} ${year}`;
 };
 
 export const clampEventToDay = (eventStart: Date, eventEnd: Date, day: Date) => {

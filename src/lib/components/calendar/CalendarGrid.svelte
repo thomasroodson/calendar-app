@@ -18,15 +18,18 @@
   import type { CalendarEvent } from "$lib/types/calendar";
 
   let {
+    view = $bindable(),
+    onViewChange,
     onEmptySlotClick,
     onEventClick
   }: {
+    view: ViewMode;
+    onViewChange?: (v: ViewMode) => void;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent) => void;
   } = $props();
 
   type ViewMode = "day" | "week" | "month";
-  let view = $state<ViewMode>("week");
 
   const currentDate = $derived.by(() => calendarStore.currentDate);
   const events = $derived.by(() => calendarStore.events);
@@ -42,8 +45,16 @@
 
   const eventsByDay = $derived.by(() => buildEventsByDay(events, rangeStart, rangeEnd));
   const headerLabel = $derived.by(() => formatMonthYear(currentDate));
+  const dayBadge = $derived.by(() => currentDate.getDate());
+  const currentDayKey = $derived.by(() => toDayKey(currentDate));
+  const dayEvents = $derived.by(() => eventsByDay.get(currentDayKey) ?? []);
 
   const goToday = () => (calendarStore.currentDate = new Date());
+
+  const handleSelectChange = (e: Event) => {
+    const next = (e.currentTarget as HTMLSelectElement).value as ViewMode;
+    onViewChange?.(next);
+  };
 
   const goPrev = () => {
     const d = new Date(currentDate);
@@ -60,10 +71,6 @@
     else d.setMonth(d.getMonth() + 1);
     calendarStore.currentDate = d;
   };
-
-  const dayBadge = $derived.by(() => currentDate.getDate());
-  const currentDayKey = $derived.by(() => toDayKey(currentDate));
-  const dayEvents = $derived.by(() => eventsByDay.get(currentDayKey) ?? []);
 </script>
 
 <header
@@ -71,38 +78,45 @@
 >
   <div class="flex min-w-0 items-center gap-4">
     <div
-      class="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-content shadow-sm md:ml-2"
+      class="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-content shadow-sm md:h-10 md:w-10"
     >
       {dayBadge}
     </div>
 
-    <h2 class="min-w-0 truncate text-base font-normal capitalize md:text-xl">{headerLabel}</h2>
+    <h2 class="font-normal md:text-xl">{headerLabel}</h2>
 
     <button
       class="btn ml-2 hidden border border-base-300 px-4 btn-ghost btn-sm lg:inline-flex"
       onclick={goToday}
+      type="button"
     >
       Hoje
     </button>
   </div>
 
-  <div class="flex items-center gap-3 md:gap-4">
-    <select bind:value={view} class="select-bordered select bg-base-100 select-sm">
+  <div class="flex flex-col items-center gap-4 md:flex-row">
+    <select
+      bind:value={view}
+      class="select-bordered select select-sm font-medium"
+      onchange={handleSelectChange}
+    >
       <option value="day">Dia</option>
       <option value="week">Semana</option>
       <option value="month">Mês</option>
     </select>
 
-    <div class="join border border-base-200">
-      <button class="btn join-item btn-ghost btn-sm" onclick={goPrev}
-        ><ChevronLeftIcon size={16} /></button
-      >
-      <button class="btn join-item btn-ghost btn-sm" onclick={goNext}
-        ><ChevronRightIcon size={16} /></button
-      >
-    </div>
+    <div class="flex items-center gap-4">
+      <div class="join border border-base-200">
+        <button class="btn join-item btn-ghost btn-sm" onclick={goPrev} type="button"
+          ><ChevronLeftIcon size={16} /></button
+        >
+        <button class="btn join-item btn-ghost btn-sm" onclick={goNext} type="button"
+          ><ChevronRightIcon size={16} /></button
+        >
+      </div>
 
-    <ThemeToggle />
+      <ThemeToggle />
+    </div>
   </div>
 </header>
 

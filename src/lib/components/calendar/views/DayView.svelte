@@ -12,7 +12,7 @@
     date: Date;
     events: CalendarEvent[];
     onEmptySlotClick?: (start: Date) => void;
-    onEventClick?: (event: CalendarEvent) => void;
+    onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
   } = $props();
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -36,6 +36,46 @@
     const height = Math.max(rawHeight, MIN_EVENT_HEIGHT);
 
     return `top:${top}px; height:${height}px; position:absolute; left:8px; right:8px;`;
+  };
+  const minutesFromOffsetY = (offsetY: number) => {
+    const minutes = Math.floor((offsetY / HOUR_HEIGHT) * 60);
+    return Math.max(0, Math.min(23 * 60 + 59, minutes));
+  };
+
+  const buildDateAtMinutes = (baseDay: Date, minutes: number) => {
+    const d = new Date(baseDay);
+    d.setHours(0, 0, 0, 0);
+    d.setMinutes(minutes);
+    return d;
+  };
+
+  const isInsideAnyEvent = (clicked: Date) => {
+    const clickedMs = clicked.getTime();
+
+    return events.some((event) => {
+      const rawStart = new Date(event.startDate);
+      const rawEnd = new Date(event.endDate);
+
+      const { start, end, isVisible } = clampEventToDay(rawStart, rawEnd, date);
+      if (!isVisible) return false;
+
+      return clickedMs >= start.getTime() && clickedMs < end.getTime();
+    });
+  };
+
+  const handleEmptyClick = (e: MouseEvent) => {
+    if (!onEmptySlotClick) return;
+
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+
+    const minutes = minutesFromOffsetY(offsetY);
+    const start = buildDateAtMinutes(date, minutes);
+
+    if (isInsideAnyEvent(start)) return;
+
+    onEmptySlotClick(start);
   };
 </script>
 
@@ -63,10 +103,33 @@
       <!-- Área para eventos (MVP: lista no topo) -->
       <div
         class="relative min-h-[1920px] border-l border-base-300 p-2 transition-colors hover:bg-base-200/10"
+        role="presentation"
+        onclick={handleEmptyClick}
       >
+        <!-- ✅ Linhas horizontais (fundo) -->
+        <div class="pointer-events-none absolute inset-0">
+          {#each hours as _}
+            <div class="h-20 border-b border-base-300"></div>
+          {/each}
+        </div>
+
+        <!-- Eventos -->
         {#each events as event (event.id)}
           <div style={getEventStyle(event)}>
-            <EventCard {event} stretch />
+            <div
+              data-event-card="true"
+              role="presentation"
+              onclick={(ev) => {
+                ev.stopPropagation();
+
+                const el = ev.currentTarget as HTMLElement;
+                const rect = el.getBoundingClientRect();
+
+                onEventClick?.(event, rect);
+              }}
+            >
+              <EventCard {event} stretch />
+            </div>
           </div>
         {/each}
       </div>

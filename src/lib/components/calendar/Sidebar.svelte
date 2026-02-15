@@ -3,7 +3,8 @@
   import { calendarStore } from "$lib/stores/calendar.svelte";
   import { formatMonthYear } from "$lib/utils/dateUtils";
 
-  let { onCreate }: { onCreate: () => void } = $props();
+  let { onCreate, onSelectDay }: { onCreate: () => void; onSelectDay: (date: Date) => void } =
+    $props();
 
   const weekDays = ["D", "S", "T", "Q", "Q", "S", "S"];
 
@@ -22,6 +23,27 @@
     const blanks = Array.from({ length: firstDayOfWeek }, () => null);
     return [...blanks, ...days];
   });
+
+  const goPrevMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() - 1);
+    calendarStore.currentDate = d;
+  };
+
+  const goNextMonth = () => {
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() + 1);
+    calendarStore.currentDate = d;
+  };
+
+  const handleDayClick = (day: number) => {
+    const d = new Date(currentDate);
+    d.setDate(day);
+    d.setHours(0, 0, 0, 0);
+
+    calendarStore.currentDate = d;
+    onSelectDay?.(d); // ✅ pede para trocar para DayView
+  };
 </script>
 
 <aside
@@ -40,12 +62,12 @@
   <!-- Mini Calendário -->
   <div class="px-2">
     <div class="mb-4 flex items-center justify-between">
-      <span class="px-2 text-sm font-medium capitalize">{monthLabel}</span>
+      <span class="px-2 text-sm font-medium">{monthLabel}</span>
       <div class="flex gap-1">
-        <button class="btn btn-circle btn-ghost btn-xs" type="button"
+        <button class="btn btn-circle btn-ghost btn-xs" type="button" onclick={goPrevMonth}
           ><ChevronLeftIcon size={14} /></button
         >
-        <button class="btn btn-circle btn-ghost btn-xs" type="button"
+        <button class="btn btn-circle btn-ghost btn-xs" type="button" onclick={goNextMonth}
           ><ChevronRightIcon size={14} /></button
         >
       </div>
@@ -67,6 +89,7 @@
                 ? "pointer-events-none bg-primary text-primary-content"
                 : "hover:bg-base-300"
             }`}
+            onclick={() => handleDayClick(day)}
           >
             {day}
           </button>
