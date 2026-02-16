@@ -51,15 +51,18 @@ export const updateEventDates = async (id: string, start: Date, end: Date) => {
   calendarStore.loading = true;
 
   try {
+    const current = calendarStore.events.find((e) => e.id === id);
+    if (!current) return;
+
     const updated = await eventsApi.update(id, {
-      // mantém os campos necessários do seu tipo
-      title: calendarStore.events.find((e) => e.id === id)?.title ?? "",
-      description: calendarStore.events.find((e) => e.id === id)?.description ?? "",
+      title: current.title,
+      description: current.description ?? "",
+      color: current.color,
       startDate: start.toISOString(),
-      endDate: end.toISOString(),
-      color: calendarStore.events.find((e) => e.id === id)?.color ?? "#2596BE"
+      endDate: end.toISOString()
     });
 
+    // IMPORTANT: confirma com a resposta do servidor
     calendarStore.events = calendarStore.events.map((e) => (e.id === id ? updated : e));
     return updated;
   } finally {

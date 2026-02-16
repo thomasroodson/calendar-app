@@ -8,12 +8,14 @@
     eventsByDay,
     onEmptySlotClick,
     onEventClick,
+    onDragStateChange,
     onEventDrop
   }: {
     currentDate: Date;
     eventsByDay: Map<string, CalendarEvent[]>;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent) => void;
+    onDragStateChange?: (dragging: boolean) => void;
     onEventDrop?: (id: string, start: Date, end: Date) => void;
   } = $props();
 

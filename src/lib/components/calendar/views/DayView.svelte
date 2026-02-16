@@ -9,6 +9,7 @@
     onEmptySlotClick,
     onEventClick,
     onEventDrop,
+    onDragStateChange,
     focusRequest
   }: {
     date: Date;
@@ -16,6 +17,7 @@
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
     onEventDrop?: (id: string, start: Date, end: Date) => void;
+    onDragStateChange?: (dragging: boolean) => void;
     focusRequest?: { id: string; nonce: number } | null;
   } = $props();
 
@@ -191,8 +193,14 @@
               class="h-full"
               data-event-card="true"
               role="presentation"
-              ondragstart={() => (isDragging = true)}
-              ondragend={() => (isDragging = false)}
+              ondragstart={() => {
+                isDragging = true;
+                onDragStateChange?.(true);
+              }}
+              ondragend={() => {
+                isDragging = false;
+                onDragStateChange?.(false);
+              }}
               onclick={(ev) => {
                 ev.stopPropagation();
 

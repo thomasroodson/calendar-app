@@ -38,6 +38,19 @@
 
   let loadTimeout: ReturnType<typeof setTimeout> | null = null;
   let lastKey = "";
+  let isDraggingGlobal = $state(false);
+  let pendingRange = $state<{ start: Date; end: Date } | null>(null);
+
+  const setDragging = (v: boolean) => {
+    isDraggingGlobal = v;
+
+    // terminou o drag: se ficou um range pendente, carrega agora
+    if (!v && pendingRange) {
+      const { start, end } = pendingRange;
+      pendingRange = null;
+      loadRange(start, end);
+    }
+  };
 
   const currentDate = $derived.by(() => calendarStore.currentDate);
   const events = $derived.by(() => calendarStore.events);
@@ -63,13 +76,31 @@
     if (loadTimeout) clearTimeout(loadTimeout);
 
     loadTimeout = setTimeout(() => {
+      if (isDraggingGlobal) {
+        pendingRange = { start, end };
+        return;
+      }
+
+      pendingRange = null;
       loadRange(start, end);
-    }, 250); // 👈 aumenta/diminui se quiser (250–400 fica ótimo)
+    }, 250);
   });
 
   $effect(() => {
     return () => {
       if (loadTimeout) clearTimeout(loadTimeout);
+    };
+  });
+
+  $effect(() => {
+    const stop = () => setDragging(false);
+
+    window.addEventListener("dragend", stop);
+    window.addEventListener("drop", stop);
+
+    return () => {
+      window.removeEventListener("dragend", stop);
+      window.removeEventListener("drop", stop);
     };
   });
 
@@ -106,14 +137,22 @@
     const prev = calendarStore.events.find((e) => e.id === id);
     if (!prev) return;
 
-    // otimista: atualiza imediatamente
-    calendarStore.events = calendarStore.events.map((ev) =>
-      ev.id === id ? { ...ev, startDate: start.toISOString(), endDate: end.toISOString() } : ev
-    );
-
     try {
+      const updated = await updateEventDates(id, start, end);
+
+      // garante que o evento existe na lista mesmo se algum loadRange tiver limpado antes
+      if (updated && !calendarStore.events.some((e) => e.id === id)) {
+        calendarStore.events = [updated, ...calendarStore.events];
+      }
+
+      // ✅ agora sim recarrega o range atual (se estava pendente)
+      if (pendingRange) {
+        const { start: rs, end: re } = pendingRange;
+        pendingRange = null;
+        await loadRange(rs, re);
+      }
+
       onEventDrop?.(id, start, end, new Date(prev.startDate), new Date(prev.endDate));
-      await updateEventDates(id, start, end);
     } catch (err) {
       calendarStore.events = calendarStore.events.map((ev) => (ev.id === id ? prev : ev));
       console.error(err);
@@ -175,6 +214,7 @@
       events={dayEvents}
       {onEmptySlotClick}
       {onEventClick}
+      onDragStateChange={setDragging}
       onEventDrop={handleEventDrop}
       {focusRequest}
     />
@@ -184,6 +224,7 @@
       {eventsByDay}
       {onEmptySlotClick}
       {onEventClick}
+      onDragStateChange={setDragging}
       onEventDrop={handleEventDrop}
       onNavigateWeek={(dir) => (dir === "prev" ? goPrev() : goNext())}
     />
@@ -193,6 +234,7 @@
       {eventsByDay}
       {onEmptySlotClick}
       {onEventClick}
+      onDragStateChange={setDragging}
       onEventDrop={handleEventDrop}
     />
   {/if}

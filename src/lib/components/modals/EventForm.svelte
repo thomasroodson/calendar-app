@@ -39,13 +39,21 @@
     )}:${pad(d.getMinutes())}`;
   };
 
+  const roundTo = (d: Date, minutes = 15) => {
+    const ms = minutes * 60_000;
+    return new Date(Math.ceil(d.getTime() / ms) * ms);
+  };
+
+  const fallbackStartDate = roundTo(new Date(), 15);
+  const fallbackEndDate = new Date(fallbackStartDate.getTime() + 60 * 60_000);
+
   const getInitialDraft = (
     e: CalendarEvent | null,
     startOverride?: Date | null,
     endOverride?: Date | null
   ): Draft => {
-    const fallbackStart = "2026-02-12T09:00";
-    const fallbackEnd = "2026-02-12T10:00";
+    const fallbackStart = formatForInput(fallbackStartDate.toISOString());
+    const fallbackEnd = formatForInput(fallbackEndDate.toISOString());
     const fallbackColor = "#2596BE";
 
     return {
