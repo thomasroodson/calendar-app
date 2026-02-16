@@ -1,42 +1,97 @@
-# sv
+# Agenda — Aplicativo de Calendário
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Aplicativo web de calendário e agenda, com visualização por dia, semana e mês, criação e edição de eventos, pesquisa e integração com API.
 
-## Creating a project
+![Visão da aplicação em execução — visualização semanal](docs/visao-aplicacao.png)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Sobre o projeto
 
-```sh
-# create a new project
-npx sv create my-app
+O **Agenda** é uma aplicação de calendário moderna que permite gerenciar compromissos e eventos. A interface é dividida em:
+
+- **Barra lateral:** Navegação, mini-calendário e botão para criar novos eventos.
+- **Cabeçalho:** Pesquisa de eventos, seletor de visualização (Dia, Semana, Mês), navegação entre períodos e alternância de tema.
+- **Área principal:** Grade de horários com os eventos da semana (ou do dia/mês), com possibilidade de arrastar e redimensionar.
+
+## Funcionalidades
+
+- **Visualizações:** Dia, Semana e Mês.
+- **Eventos:** Criar, editar e excluir eventos com título, descrição, data/hora e cor.
+- **Pesquisa:** Buscar eventos pelo texto.
+- **Mini-calendário:** Navegação rápida por mês na sidebar.
+- **Arrastar e redimensionar:** Alterar data/hora dos eventos arrastando na grade (com confirmação).
+- **Tema:** Suporte a modo claro/escuro.
+- **API:** Consumo de API REST para persistência dos eventos.
+
+## Tecnologias
+
+- **SvelteKit** — Framework full-stack
+- **Svelte 5** — Reactividade com runes
+- **TypeScript** — Tipagem estática
+- **Tailwind CSS** — Estilização
+- **DaisyUI** — Componentes e temas
+- **Vite** — Build e dev server
+- **Playwright** — Testes E2E
+
+## Pré-requisitos
+
+- Node.js (recomendado LTS)
+- npm ou pnpm
+
+## Como rodar
+
+### Instalação
+
+```bash
+npm install
 ```
 
-To recreate this project with the same configuration:
+### Desenvolvimento
 
-```sh
-# recreate this project
-npx sv create --template demo --types ts --add prettier eslint tailwindcss="plugins:none" playwright sveltekit-adapter="adapter:static" --install npm calendar-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+A aplicação estará disponível em `http://localhost:5173` (ou na porta indicada no terminal).
 
-To create a production version of your app:
+### Build para produção
 
-```sh
+```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+### Preview do build
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+## Testes
+
+```bash
+npm run test
+```
+
+Executa os testes E2E com Playwright.
+
+## Estrutura do projeto (resumo)
+
+```
+src/
+├── lib/
+│   ├── api/          # Cliente e API de eventos
+│   ├── components/   # Componentes (calendário, modais, UI)
+│   ├── stores/       # Estado global (calendário)
+│   ├── types/        # Tipos TypeScript
+│   └── utils/        # Utilitários (datas, etc.)
+├── routes/           # Páginas SvelteKit
+└── app.html
+docs/                 # Documentação e imagens
+```
+
+## Configuração da API
+
+A aplicação espera uma API REST de eventos. Configure a URL base no cliente em `src/lib/api/client.ts` (ou via variáveis de ambiente) para apontar ao seu backend.
+
+## Licença
+
+Projeto privado.
