@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { XIcon } from "$lib/components/icons";
   import TrashIcon from "$lib/components/icons/TrashIcon.svelte";
+  import { XIcon } from "$lib/components/icons";
 
   let {
     visible,
@@ -27,7 +27,6 @@
   <div class="fixed inset-x-0 bottom-4 z-50 px-3 md:bottom-6" role="presentation">
     <div class="mx-auto max-w-[520px]">
       <div class="rounded-2xl border border-base-200 bg-base-100 shadow-xl">
-        <!-- Header -->
         <div class="flex items-start justify-between gap-3 border-b border-base-200 px-4 py-3">
           <div class="min-w-0">
             <div class="flex items-center gap-2">
@@ -52,7 +51,6 @@
           </button>
         </div>
 
-        <!-- Footer actions -->
         <div class="flex items-center justify-end gap-2 px-4 py-3">
           <button type="button" class="btn btn-ghost btn-sm" onclick={() => onClose?.()}>
             Fechar

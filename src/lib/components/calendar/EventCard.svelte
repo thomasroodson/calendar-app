@@ -30,7 +30,7 @@
     });
 
     dt.setData("application/x-calendar-event", payload);
-    dt.setData("text/plain", event.id); // fallback
+    dt.setData("text/plain", event.id);
     dt.effectAllowed = "move";
 
     (e.currentTarget as HTMLElement).classList.add("dragging");

@@ -1,6 +1,6 @@
 <script lang="ts">
+  import { TrashIcon, XIcon } from "$lib/components/icons";
   import type { CalendarEvent } from "$lib/types/calendar";
-  import { XIcon, TrashIcon } from "$lib/components/icons";
 
   let {
     isOpen,
@@ -33,7 +33,6 @@
     const openLeft = anchorRect.right + gap + width > window.innerWidth;
     const left = openLeft ? Math.max(12, anchorRect.left - gap - width) : anchorRect.right + gap;
 
-    // Mantém dentro da viewport
     const top = Math.min(Math.max(12, anchorRect.top), window.innerHeight - 12);
 
     return `position:fixed; left:${left}px; top:${top - 70}px; width:${width}px; z-index:60;`;

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { CalendarEvent } from "$lib/types/calendar";
   import EventCard from "$lib/components/calendar/EventCard.svelte";
-  import { toDayKey, clampEventToDay } from "$lib/utils/dateUtils";
+  import type { CalendarEvent } from "$lib/types/calendar";
+  import { clampEventToDay, toDayKey } from "$lib/utils/dateUtils";
 
   let {
     days,
@@ -23,19 +23,18 @@
   let navTimer: ReturnType<typeof setTimeout> | null = null;
   let activeEdge: "prev" | "next" | null = null;
 
-  const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
-  const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
-
   const HOUR_HEIGHT = 80;
   const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
   const MIN_EVENT_HEIGHT = 28;
   const SNAP_MINUTES = 15;
+  const NAV_DELAY_MS = 1100;
+
+  const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+  const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
   const snapMinutes = (minutes: number) => Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-
-  const NAV_DELAY_MS = 1100;
 
   const minutesFromOffsetY = (offsetY: number) => {
     const minutes = Math.floor((offsetY / HOUR_HEIGHT) * 60);
@@ -84,7 +83,7 @@
   };
 
   const handleDayDragOver = (e: DragEvent) => {
-    e.preventDefault(); // obrigatório para permitir drop
+    e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
   };
 
@@ -108,7 +107,6 @@
     const rawMinutes = minutesFromOffsetY(offsetY);
     const duration = Math.max(15, payload.durationMinutes);
 
-    // garante que o evento não "estoure" para fora do dia
     const maxStart = Math.max(0, 24 * 60 - duration);
 
     const snapped = snapMinutes(rawMinutes);
@@ -144,7 +142,7 @@
   };
 
   const startNavTimer = (dir: "prev" | "next") => {
-    if (activeEdge === dir) return; // já está contando
+    if (activeEdge === dir) return;
 
     clearNavTimer();
     activeEdge = dir;
@@ -157,7 +155,6 @@
 </script>
 
 <div class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-base-100">
-  <!-- Cabeçalho dos Dias -->
   <div
     class="grid flex-none grid-cols-[40px_1fr] border-b border-base-300 bg-base-200/20 pr-[15px] md:grid-cols-[60px_1fr] md:pr-4"
   >
@@ -177,10 +174,8 @@
     </div>
   </div>
 
-  <!-- Área de Scroll -->
   <div class="min-h-0 flex-1 overflow-y-auto">
     <div class="relative grid min-h-fit grid-cols-[40px_1fr] md:grid-cols-[60px_1fr]">
-      <!-- Coluna de Horas -->
       <div class="bg-base-50/50 flex-none border-r border-base-200">
         {#each hours as hour}
           <div
@@ -191,9 +186,7 @@
         {/each}
       </div>
 
-      <!-- Grid 7 colunas -->
       <div class="relative grid grid-cols-7 divide-x divide-base-300">
-        <!-- Linhas horizontais -->
         <div class="pointer-events-none absolute inset-0">
           {#each hours as _}
             <div class="h-20 border-b border-base-300"></div>
@@ -227,12 +220,10 @@
                     onEventClick?.(event, rect);
                   }}
                 >
-                  <!-- MOBILE -->
                   <div class="h-full md:hidden">
                     <EventCard {event} stretch compact />
                   </div>
 
-                  <!-- DESKTOP -->
                   <div class="hidden h-full md:block">
                     <EventCard {event} stretch />
                   </div>

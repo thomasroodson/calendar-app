@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { CalendarEvent } from "$lib/types/calendar";
-  import { XIcon } from "$lib/components/icons";
   import EventForm from "$lib/components/modals/EventForm.svelte";
+  import { XIcon } from "$lib/components/icons";
+  import type { CalendarEvent } from "$lib/types/calendar";
   import { createEvent, updateEvent } from "$lib/stores/calendar.svelte";
 
   type Mode = "create" | "edit";
@@ -52,7 +52,6 @@
 </script>
 
 {#if isOpen}
-  <!-- Backdrop -->
   <button
     class="fixed inset-0 z-50 bg-black/50"
     aria-label="Fechar modal"
@@ -60,10 +59,8 @@
     onclick={onClose}
   ></button>
 
-  <!-- Modal -->
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xl rounded-2xl bg-base-100 shadow-xl">
-      <!-- Header -->
       <div class="flex items-center justify-between border-b border-base-200 px-6 py-4">
         <div>
           <h3 class="text-lg font-semibold">{title}</h3>
@@ -75,7 +72,6 @@
         </button>
       </div>
 
-      <!-- Body -->
       <div class="px-6 py-5">
         <EventForm
           {mode}
@@ -87,7 +83,6 @@
         />
       </div>
 
-      <!-- Footer -->
       <div class="flex items-center justify-end gap-2 border-t border-base-200 px-6 py-4">
         <button class="btn btn-ghost" type="button" onclick={onClose}> Cancelar </button>
 

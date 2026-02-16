@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { CalendarEvent } from "$lib/types/calendar";
   import EventCard from "$lib/components/calendar/EventCard.svelte";
+  import type { CalendarEvent } from "$lib/types/calendar";
   import { getMonthGridDates, toDayKey } from "$lib/utils/dateUtils";
 
   let {
@@ -45,7 +45,6 @@
       return;
     }
 
-    // Procurar o evento dentro do range visível (eventsByDay contém os eventos distribuídos pelos dias)
     const allEvents = Array.from(eventsByDay.values()).flat();
     const ev = allEvents.find((x) => x.id === payload.id);
     if (!ev) return;
@@ -53,7 +52,6 @@
     const oldStart = new Date(ev.startDate);
     const oldEnd = new Date(ev.endDate);
 
-    // Diff em dias (mantém o horário)
     const diffDays =
       targetDay.getFullYear() === oldStart.getFullYear() &&
       targetDay.getMonth() === oldStart.getMonth() &&
@@ -107,7 +105,6 @@
             {day.getDate()}
           </span>
 
-          <!-- MOBILE (<768px): apenas bolinhas -->
           {#if dayEvents.length > 0}
             <div class="mt-2 flex items-center justify-center gap-1 md:hidden">
               {#each dayEvents.slice(0, 3) as event (event.id)}
@@ -121,7 +118,6 @@
             </div>
           {/if}
 
-          <!-- DESKTOP (>=768px): lista de eventos -->
           <div class="mt-2 hidden flex-1 space-y-1 overflow-hidden md:block">
             {#each dayEvents.slice(0, 2) as event (event.id)}
               <EventCard {event} />

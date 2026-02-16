@@ -1,38 +1,39 @@
 <script lang="ts">
-  import ThemeToggle from "$lib/components/ui/ThemeToggle.svelte";
   import DayView from "./views/DayView.svelte";
-  import WeekView from "./views/WeekView.svelte";
   import MonthView from "./views/MonthView.svelte";
+  import WeekView from "./views/WeekView.svelte";
+  import ThemeToggle from "$lib/components/ui/ThemeToggle.svelte";
+  import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
   import { ChevronLeftIcon, ChevronRightIcon } from "$lib/components/icons";
+  import type { CalendarEvent } from "$lib/types/calendar";
   import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
   import {
-    getWeekDays,
-    getMonthGridDates,
     buildEventsByDay,
-    startOfDay,
     endOfDay,
     formatMonthYear,
+    getMonthGridDates,
+    getWeekDays,
+    startOfDay,
     toDayKey
   } from "$lib/utils/dateUtils";
-  import type { CalendarEvent } from "$lib/types/calendar";
-  import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
-  import { onDestroy } from "svelte";
+
+  type ViewMode = "day" | "week" | "month";
 
   let {
     view = $bindable(),
     onViewChange,
     onEmptySlotClick,
     onEventClick,
-    onEventDrop
+    onEventDrop,
+    focusRequest
   }: {
     view: ViewMode;
     onViewChange?: (v: ViewMode) => void;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
     onEventDrop?: (id: string, start: Date, end: Date) => void;
+    focusRequest?: { id: string; nonce: number } | null;
   } = $props();
-
-  type ViewMode = "day" | "week" | "month";
 
   const currentDate = $derived.by(() => calendarStore.currentDate);
   const events = $derived.by(() => calendarStore.events);
@@ -131,6 +132,7 @@
       {onEmptySlotClick}
       {onEventClick}
       {onEventDrop}
+      {focusRequest}
     />
   {:else if view === "week"}
     <WeekView

@@ -9,7 +9,6 @@
 </div>
 
 <style>
-  /* CSS de emergência para garantir que o SvelteKit não limite a altura */
   :global(html, body, #svelte) {
     height: 100vh;
     width: 100vw;

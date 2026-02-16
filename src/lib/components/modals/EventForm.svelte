@@ -1,8 +1,22 @@
 <script lang="ts">
-  import { toLocalISOString } from "$lib/utils/dateUtils";
   import type { CalendarEvent } from "$lib/types/calendar";
+  import { toLocalISOString } from "$lib/utils/dateUtils";
 
   type Mode = "create" | "edit";
+  type SubmitPayload = {
+    title: string;
+    description?: string;
+    startDate: string;
+    endDate: string;
+    color: string;
+  };
+  type Draft = {
+    title: string;
+    description: string;
+    start: string;
+    end: string;
+    color: string;
+  };
 
   let {
     mode = "create",
@@ -20,10 +34,6 @@
     onSubmit?: (payload: SubmitPayload) => void;
   } = $props();
 
-  $effect(() => {
-    onValidityChange?.(isValid);
-  });
-
   const pad = (n: number) => String(n).padStart(2, "0");
 
   const formatForInput = (iso?: string | null) => {
@@ -32,22 +42,6 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
       d.getHours()
     )}:${pad(d.getMinutes())}`;
-  };
-
-  type SubmitPayload = {
-    title: string;
-    description?: string;
-    startDate: string;
-    endDate: string;
-    color: string;
-  };
-
-  type Draft = {
-    title: string;
-    description: string;
-    start: string; // datetime-local
-    end: string; // datetime-local
-    color: string;
   };
 
   const getInitialDraft = (
@@ -74,7 +68,6 @@
     };
   };
 
-  // Inicializa com defaults; $effect sincroniza quando event mudar
   let draft = $state<Draft>(getInitialDraft(null));
 
   $effect(() => {
@@ -86,7 +79,6 @@
     return new Date(draft.end).getTime() <= new Date(draft.start).getTime();
   });
 
-  // (opcional) validação mínima geral — útil para desabilitar salvar depois
   const isValid = $derived.by(() => {
     if (!draft.title.trim()) return false;
     if (!draft.start || !draft.end) return false;
@@ -118,7 +110,6 @@
     });
   }}
 >
-  <!-- Título -->
   <label class="form-control w-full">
     <div class="label">
       <span class="label-text">Título</span>
@@ -131,7 +122,6 @@
     />
   </label>
 
-  <!-- Descrição -->
   <label class="form-control w-full">
     <div class="label">
       <span class="label-text">Descrição</span>
@@ -144,7 +134,6 @@
     ></textarea>
   </label>
 
-  <!-- Datas -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <label class="form-control w-full">
       <div class="label">
@@ -168,7 +157,6 @@
     </label>
   </div>
 
-  <!-- Cor (✅ agora está bindado e carrega do event) -->
   <div class="flex items-center gap-3">
     <span class="text-sm opacity-70">Cor</span>
     <input
@@ -187,7 +175,4 @@
         : "Dica: você poderá editar ou excluir esse evento depois."}
     </span>
   </div>
-
-  <!-- Só pra debug rápido (remova depois) -->
-  <!-- <pre class="text-xs opacity-60">{JSON.stringify({ isValid }, null, 2)}</pre> -->
 </form>

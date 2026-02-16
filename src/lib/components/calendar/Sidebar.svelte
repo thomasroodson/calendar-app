@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "$lib/components/icons";
+  import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "$lib/components/icons";
   import { calendarStore } from "$lib/stores/calendar.svelte";
   import { formatMonthYear } from "$lib/utils/dateUtils";
 
@@ -42,14 +42,13 @@
     d.setHours(0, 0, 0, 0);
 
     calendarStore.currentDate = d;
-    onSelectDay?.(d); // ✅ pede para trocar para DayView
+    onSelectDay?.(d);
   };
 </script>
 
 <aside
   class="flex w-full flex-col gap-6 bg-base-200/50 p-4 transition-all duration-300 md:w-64 md:gap-8"
 >
-  <!-- Botão Criar -->
   <button
     type="button"
     class="group btn flex rounded-2xl border-none bg-base-100 px-6 normal-case shadow-md btn-lg hover:bg-base-200"
@@ -59,7 +58,6 @@
     <span class="text-base font-normal uppercase">Criar</span>
   </button>
 
-  <!-- Mini Calendário -->
   <div class="px-2">
     <div class="mb-4 flex items-center justify-between">
       <span class="px-2 text-sm font-medium">{monthLabel}</span>
