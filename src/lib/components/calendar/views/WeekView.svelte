@@ -8,16 +8,20 @@
     eventsByDay,
     onEmptySlotClick,
     onEventClick,
-    onEventDrop
+    onEventDrop,
+    onNavigateWeek
   }: {
     days: Date[];
     eventsByDay: Map<string, CalendarEvent[]>;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
     onEventDrop?: (id: string, start: Date, end: Date) => void;
+    onNavigateWeek?: (dir: "prev" | "next") => void;
   } = $props();
 
   let isDragging = $state(false);
+  let navTimer: ReturnType<typeof setTimeout> | null = null;
+  let activeEdge: "prev" | "next" | null = null;
 
   const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
   const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
@@ -30,6 +34,8 @@
   const snapMinutes = (minutes: number) => Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+
+  const NAV_DELAY_MS = 1100;
 
   const minutesFromOffsetY = (offsetY: number) => {
     const minutes = Math.floor((offsetY / HOUR_HEIGHT) * 60);
@@ -115,6 +121,39 @@
 
     isDragging = false;
   };
+
+  const handleColumnEdgeDrag = (e: DragEvent, index: number) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+
+    if (index === 0) {
+      startNavTimer("prev");
+    } else if (index === days.length - 1) {
+      startNavTimer("next");
+    } else {
+      clearNavTimer();
+    }
+  };
+
+  const clearNavTimer = () => {
+    if (navTimer) {
+      clearTimeout(navTimer);
+      navTimer = null;
+    }
+    activeEdge = null;
+  };
+
+  const startNavTimer = (dir: "prev" | "next") => {
+    if (activeEdge === dir) return; // já está contando
+
+    clearNavTimer();
+    activeEdge = dir;
+
+    navTimer = setTimeout(() => {
+      onNavigateWeek?.(dir);
+      clearNavTimer();
+    }, NAV_DELAY_MS);
+  };
 </script>
 
 <div class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-base-100">
@@ -161,7 +200,7 @@
           {/each}
         </div>
 
-        {#each days as day (day.toISOString())}
+        {#each days as day, i (day.toISOString())}
           {@const key = toDayKey(day)}
           {@const dayEvents = eventsByDay.get(key) ?? []}
 
@@ -169,7 +208,8 @@
             class="relative h-full min-h-[1920px] cursor-default transition-colors hover:bg-base-200/5"
             role="presentation"
             onclick={(e) => handleEmptyClick(e, day)}
-            ondragover={handleDayDragOver}
+            ondragover={(e) => handleColumnEdgeDrag(e, i)}
+            ondragleave={clearNavTimer}
             ondrop={(e) => handleDayDrop(e, day)}
           >
             {#each dayEvents as event (event.id)}

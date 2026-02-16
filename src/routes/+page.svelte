@@ -7,6 +7,8 @@
   import type { CalendarEvent } from "$lib/types/calendar";
   import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
   import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
+  import ConfirmDialog from "$lib/components/ui/ConfirmDialog.svelte";
+  import { deleteEvent } from "$lib/stores/calendar.svelte";
 
   let isSidebarOpen = $state(true);
 
@@ -14,6 +16,8 @@
   let isModalOpen = $state(false);
   let modalMode = $state<"create" | "edit">("create");
   let selectedEvent = $state<CalendarEvent | null>(null);
+  let isConfirmOpen = $state(false);
+  let eventToDelete = $state<CalendarEvent | null>(null);
 
   // Prefill para create (clicou no grid)
   let initialStart = $state<Date | null>(null);
@@ -22,15 +26,24 @@
   let isPopoverOpen = $state(false);
   let anchorRect = $state<DOMRect | null>(null);
 
-  let dragAlert = $state({
+  let dragAlert = $state<{
+    visible: boolean;
+    eventId: string;
+    title: string;
+    color: string;
+    oldStart: Date | null;
+    oldEnd: Date | null;
+    newStart: Date | null;
+    newEnd: Date | null;
+  }>({
     visible: false,
     eventId: "",
     title: "",
     color: "#3b82f6",
-    oldStart: null as Date | null,
-    oldEnd: null as Date | null,
-    newStart: null as Date | null,
-    newEnd: null as Date | null
+    oldStart: null,
+    oldEnd: null,
+    newStart: null,
+    newEnd: null
   });
 
   let alertTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -126,6 +139,31 @@
     dragAlert.visible = false;
     if (alertTimeout) clearTimeout(alertTimeout);
   };
+
+  const openDeleteConfirm = (event: CalendarEvent) => {
+    eventToDelete = event;
+    isConfirmOpen = true;
+  };
+
+  const closeDeleteConfirm = () => {
+    isConfirmOpen = false;
+    eventToDelete = null;
+  };
+
+  const confirmDelete = () => {
+    if (!eventToDelete) return;
+    deleteEvent(eventToDelete.id);
+    closeDeleteConfirm();
+    closePopover();
+  };
+
+  const handleDeleteFromAlert = () => {
+    const ev = calendarStore.events.find((e) => e.id === dragAlert.eventId);
+    if (!ev) return;
+
+    openDeleteConfirm(ev);
+    dragAlert.visible = false;
+  };
 </script>
 
 <svelte:head>
@@ -191,7 +229,17 @@
   </div>
 </div>
 
-<EventPopover isOpen={isPopoverOpen} event={selectedEvent} {anchorRect} onClose={closePopover} />
+<EventPopover
+  isOpen={isPopoverOpen}
+  event={selectedEvent}
+  {anchorRect}
+  onClose={closePopover}
+  onEdit={(event) => {
+    closePopover();
+    openEdit(event);
+  }}
+  onDelete={(event) => openDeleteConfirm(event)}
+/>
 
 <!-- ✅ Modal controlado pela page -->
 <EventModal
@@ -210,9 +258,23 @@
     hour: "2-digit",
     minute: "2-digit"
   }) ?? ""}
-  endTime={dragAlert.newEnd?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) ??
-    ""}
+  endTime={dragAlert.newEnd?.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }) ?? ""}
   color={dragAlert.color}
   onUndo={undoDrag}
+  onDelete={handleDeleteFromAlert}
   onClose={closeDragAlert}
+/>
+
+<ConfirmDialog
+  isOpen={isConfirmOpen}
+  title="Excluir evento?"
+  description={`Essa ação não pode ser desfeita. Você quer excluir "${eventToDelete?.title ?? ""}"?`}
+  confirmText="Excluir"
+  cancelText="Cancelar"
+  confirmVariant="error"
+  onCancel={closeDeleteConfirm}
+  onConfirm={confirmDelete}
 />

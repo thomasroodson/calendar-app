@@ -1,5 +1,6 @@
 <script lang="ts">
   import { XIcon } from "$lib/components/icons";
+  import TrashIcon from "$lib/components/icons/TrashIcon.svelte";
 
   let {
     visible,
@@ -8,6 +9,7 @@
     endTime,
     color = "#3b82f6",
     onUndo,
+    onDelete,
     onClose
   }: {
     visible: boolean;
@@ -16,6 +18,7 @@
     endTime: string;
     color?: string;
     onUndo?: () => void;
+    onDelete?: () => void;
     onClose?: () => void;
   } = $props();
 </script>
@@ -57,6 +60,15 @@
 
           <button type="button" class="btn btn-sm btn-primary" onclick={() => onUndo?.()}>
             Desfazer
+          </button>
+
+          <button
+            type="button"
+            class="btn text-error btn-ghost btn-sm"
+            onclick={() => onDelete?.()}
+            aria-label="Excluir evento"
+          >
+            <TrashIcon size={18} />
           </button>
         </div>
       </div>

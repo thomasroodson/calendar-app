@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toLocalISOString } from "$lib/utils/dateUtils";
   import type { CalendarEvent } from "$lib/types/calendar";
 
   type Mode = "create" | "edit";
@@ -8,13 +9,15 @@
     event = null,
     initialStart = null,
     initialEnd = null,
-    onValidityChange
+    onValidityChange,
+    onSubmit
   }: {
     mode?: Mode;
     event?: CalendarEvent | null;
     initialStart?: Date | null;
     initialEnd?: Date | null;
     onValidityChange?: (valid: boolean) => void;
+    onSubmit?: (payload: SubmitPayload) => void;
   } = $props();
 
   $effect(() => {
@@ -29,6 +32,14 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
       d.getHours()
     )}:${pad(d.getMinutes())}`;
+  };
+
+  type SubmitPayload = {
+    title: string;
+    description?: string;
+    startDate: string;
+    endDate: string;
+    color: string;
   };
 
   type Draft = {
@@ -88,7 +99,25 @@
   });
 </script>
 
-<form id="event-form" class="space-y-4" onsubmit={(e) => e.preventDefault()}>
+<form
+  id="event-form"
+  class="space-y-4"
+  onsubmit={(e) => {
+    e.preventDefault();
+    if (!isValid) return;
+
+    const start = toLocalISOString(new Date(draft.start));
+    const end = toLocalISOString(new Date(draft.end));
+
+    onSubmit?.({
+      title: draft.title.trim(),
+      description: draft.description.trim() || undefined,
+      startDate: start,
+      endDate: end,
+      color: draft.color
+    });
+  }}
+>
   <!-- Título -->
   <label class="form-control w-full">
     <div class="label">

@@ -1,17 +1,21 @@
 <script lang="ts">
   import type { CalendarEvent } from "$lib/types/calendar";
-  import { XIcon } from "$lib/components/icons";
+  import { XIcon, TrashIcon } from "$lib/components/icons";
 
   let {
     isOpen,
     event,
     anchorRect,
-    onClose
+    onClose,
+    onEdit,
+    onDelete
   }: {
     isOpen: boolean;
     event: CalendarEvent | null;
     anchorRect: DOMRect | null;
     onClose?: () => void;
+    onEdit?: (event: CalendarEvent) => void;
+    onDelete?: (event: CalendarEvent) => void;
   } = $props();
 
   const formatTime = (iso: string) =>
@@ -37,6 +41,11 @@
 
   const handleBackdropClick = (e: MouseEvent) => {
     if (e.target === e.currentTarget) onClose?.();
+  };
+
+  const handleDelete = () => {
+    if (!event) return;
+    onDelete?.(event);
   };
 </script>
 
@@ -86,8 +95,23 @@
           Fechar
         </button>
 
-        <!-- Depois: ligar no modo edit -->
-        <button type="button" class="btn btn-sm btn-primary"> Editar </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-primary"
+          onclick={() => event && onEdit?.(event)}
+        >
+          Editar
+        </button>
+
+        <button
+          type="button"
+          class="btn text-error btn-ghost btn-sm"
+          onclick={handleDelete}
+          aria-label="Excluir evento"
+        >
+          <TrashIcon size={18} />
+          Excluir
+        </button>
       </div>
     </div>
   </div>

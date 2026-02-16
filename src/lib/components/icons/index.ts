@@ -9,3 +9,4 @@ export { default as SunIcon } from "./SunIcon.svelte";
 export { default as CloseIcon } from "./CloseIcon.svelte";
 export { default as CheckIcon } from "./CheckIcon.svelte";
 export { default as XIcon } from "./XIcon.svelte";
+export { default as TrashIcon } from "./TrashIcon.svelte";

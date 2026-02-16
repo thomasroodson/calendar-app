@@ -2,6 +2,7 @@
   import type { CalendarEvent } from "$lib/types/calendar";
   import { XIcon } from "$lib/components/icons";
   import EventForm from "$lib/components/modals/EventForm.svelte";
+  import { createEvent, updateEvent } from "$lib/stores/calendar.svelte";
 
   type Mode = "create" | "edit";
 
@@ -23,12 +24,31 @@
 
   let isFormValid = $state(true);
 
+  type SubmitPayload = {
+    title: string;
+    description?: string;
+    startDate: string;
+    endDate: string;
+    color: string;
+  };
+
   const title = $derived.by(() => (mode === "edit" ? "Editar evento" : "Adicionar evento"));
   const subtitle = $derived.by(() =>
     mode === "edit"
       ? "Atualize os detalhes abaixo para editar este evento."
       : "Preencha os detalhes abaixo para criar um novo evento."
   );
+
+  const handleSubmit = (payload: SubmitPayload) => {
+    if (mode === "edit") {
+      if (!event) return;
+      updateEvent(event.id, payload);
+    } else {
+      createEvent(payload);
+    }
+
+    onClose();
+  };
 </script>
 
 {#if isOpen}
@@ -57,7 +77,14 @@
 
       <!-- Body -->
       <div class="px-6 py-5">
-        <EventForm {mode} {event} {initialStart} {initialEnd} onValidityChange={(valid: boolean) => (isFormValid = valid)} />
+        <EventForm
+          {mode}
+          {event}
+          {initialStart}
+          {initialEnd}
+          onValidityChange={(valid: boolean) => (isFormValid = valid)}
+          onSubmit={handleSubmit}
+        />
       </div>
 
       <!-- Footer -->

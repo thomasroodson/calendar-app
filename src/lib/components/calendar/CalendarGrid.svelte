@@ -28,7 +28,7 @@
     view: ViewMode;
     onViewChange?: (v: ViewMode) => void;
     onEmptySlotClick?: (start: Date) => void;
-    onEventClick?: (event: CalendarEvent) => void;
+    onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
     onEventDrop?: (id: string, start: Date, end: Date) => void;
   } = $props();
 
@@ -133,7 +133,14 @@
       {onEventDrop}
     />
   {:else if view === "week"}
-    <WeekView days={visibleDays} {eventsByDay} {onEmptySlotClick} {onEventClick} {onEventDrop} />
+    <WeekView
+      days={visibleDays}
+      {eventsByDay}
+      {onEmptySlotClick}
+      {onEventClick}
+      {onEventDrop}
+      onNavigateWeek={(dir) => (dir === "prev" ? goPrev() : goNext())}
+    />
   {:else}
     <MonthView {currentDate} {eventsByDay} {onEmptySlotClick} {onEventClick} {onEventDrop} />
   {/if}
