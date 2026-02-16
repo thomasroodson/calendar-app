@@ -4,7 +4,6 @@
   import WeekView from "./views/WeekView.svelte";
   import MonthView from "./views/MonthView.svelte";
   import { ChevronLeftIcon, ChevronRightIcon } from "$lib/components/icons";
-
   import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
   import {
     getWeekDays,
@@ -16,17 +15,21 @@
     toDayKey
   } from "$lib/utils/dateUtils";
   import type { CalendarEvent } from "$lib/types/calendar";
+  import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
+  import { onDestroy } from "svelte";
 
   let {
     view = $bindable(),
     onViewChange,
     onEmptySlotClick,
-    onEventClick
+    onEventClick,
+    onEventDrop
   }: {
     view: ViewMode;
     onViewChange?: (v: ViewMode) => void;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent) => void;
+    onEventDrop?: (id: string, start: Date, end: Date) => void;
   } = $props();
 
   type ViewMode = "day" | "week" | "month";
@@ -127,17 +130,11 @@
       events={dayEvents}
       {onEmptySlotClick}
       {onEventClick}
-      onEventDrop={(id, start, end) => updateEventDates(id, start, end)}
+      {onEventDrop}
     />
   {:else if view === "week"}
-    <WeekView
-      days={visibleDays}
-      {eventsByDay}
-      {onEmptySlotClick}
-      {onEventClick}
-      onEventDrop={(id, start, end) => updateEventDates(id, start, end)}
-    />
+    <WeekView days={visibleDays} {eventsByDay} {onEmptySlotClick} {onEventClick} {onEventDrop} />
   {:else}
-    <MonthView {currentDate} {eventsByDay} {onEmptySlotClick} {onEventClick} />
+    <MonthView {currentDate} {eventsByDay} {onEmptySlotClick} {onEventClick} {onEventDrop} />
   {/if}
 </div>

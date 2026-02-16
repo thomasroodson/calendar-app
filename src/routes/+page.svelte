@@ -5,6 +5,8 @@
   import { HamburgerIcon, SearchIcon } from "$lib/components/icons";
   import EventModal from "$lib/components/modals/EventModal.svelte";
   import type { CalendarEvent } from "$lib/types/calendar";
+  import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
+  import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
 
   let isSidebarOpen = $state(true);
 
@@ -19,6 +21,19 @@
 
   let isPopoverOpen = $state(false);
   let anchorRect = $state<DOMRect | null>(null);
+
+  let dragAlert = $state({
+    visible: false,
+    eventId: "",
+    title: "",
+    color: "#3b82f6",
+    oldStart: null as Date | null,
+    oldEnd: null as Date | null,
+    newStart: null as Date | null,
+    newEnd: null as Date | null
+  });
+
+  let alertTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const closeModal = () => {
     isModalOpen = false;
@@ -68,6 +83,48 @@
     isPopoverOpen = false;
     selectedEvent = null;
     anchorRect = null;
+  };
+
+  const handleEventDrop = (id: string, start: Date, end: Date) => {
+    const ev = calendarStore.events.find((e) => e.id === id);
+    if (!ev) return;
+
+    const oldStart = new Date(ev.startDate);
+    const oldEnd = new Date(ev.endDate);
+
+    updateEventDates(id, start, end);
+
+    dragAlert = {
+      visible: true,
+      eventId: id,
+      title: ev.title,
+      color: ev.color,
+      oldStart,
+      oldEnd,
+      newStart: start,
+      newEnd: end
+    };
+
+    if (alertTimeout) clearTimeout(alertTimeout);
+
+    alertTimeout = setTimeout(() => {
+      dragAlert.visible = false;
+    }, 10000);
+  };
+
+  const undoDrag = () => {
+    if (!dragAlert.oldStart || !dragAlert.oldEnd) return;
+
+    updateEventDates(dragAlert.eventId, dragAlert.oldStart, dragAlert.oldEnd);
+
+    dragAlert.visible = false;
+
+    if (alertTimeout) clearTimeout(alertTimeout);
+  };
+
+  const closeDragAlert = () => {
+    dragAlert.visible = false;
+    if (alertTimeout) clearTimeout(alertTimeout);
   };
 </script>
 
@@ -127,6 +184,7 @@
       <CalendarGrid
         onEmptySlotClick={(start: Date) => openCreate(start)}
         onEventClick={(event: CalendarEvent, rect?: DOMRect) => openPopover(event, rect)}
+        onEventDrop={handleEventDrop}
         bind:view
       />
     </main>
@@ -143,4 +201,18 @@
   {initialStart}
   {initialEnd}
   onClose={closeModal}
+/>
+
+<DragUpdateAlert
+  visible={dragAlert.visible}
+  title={dragAlert.title}
+  startTime={dragAlert.newStart?.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }) ?? ""}
+  endTime={dragAlert.newEnd?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) ??
+    ""}
+  color={dragAlert.color}
+  onUndo={undoDrag}
+  onClose={closeDragAlert}
 />

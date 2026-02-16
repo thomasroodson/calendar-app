@@ -7,17 +7,73 @@
     currentDate,
     eventsByDay,
     onEmptySlotClick,
-    onEventClick
+    onEventClick,
+    onEventDrop
   }: {
     currentDate: Date;
     eventsByDay: Map<string, CalendarEvent[]>;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent) => void;
+    onEventDrop?: (id: string, start: Date, end: Date) => void;
   } = $props();
 
   const weekDays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
   const gridDates = $derived.by(() => getMonthGridDates(currentDate));
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  };
+
+  const shiftDateByDays = (iso: string, diffDays: number) => {
+    const d = new Date(iso);
+    d.setDate(d.getDate() + diffDays);
+    return d;
+  };
+
+  const handleDropOnDay = (e: DragEvent, targetDay: Date) => {
+    e.preventDefault();
+
+    const raw = e.dataTransfer?.getData("application/x-calendar-event");
+    if (!raw) return;
+
+    let payload: { id: string };
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    // Procurar o evento dentro do range visível (eventsByDay contém os eventos distribuídos pelos dias)
+    const allEvents = Array.from(eventsByDay.values()).flat();
+    const ev = allEvents.find((x) => x.id === payload.id);
+    if (!ev) return;
+
+    const oldStart = new Date(ev.startDate);
+    const oldEnd = new Date(ev.endDate);
+
+    // Diff em dias (mantém o horário)
+    const diffDays =
+      targetDay.getFullYear() === oldStart.getFullYear() &&
+      targetDay.getMonth() === oldStart.getMonth() &&
+      targetDay.getDate() === oldStart.getDate()
+        ? 0
+        : (() => {
+            const a = new Date(oldStart);
+            a.setHours(0, 0, 0, 0);
+            const b = new Date(targetDay);
+            b.setHours(0, 0, 0, 0);
+            return Math.round((b.getTime() - a.getTime()) / 86400000);
+          })();
+
+    if (diffDays === 0) return;
+
+    const newStart = shiftDateByDays(ev.startDate, diffDays);
+    const newEnd = shiftDateByDays(ev.endDate, diffDays);
+
+    onEventDrop?.(payload.id, newStart, newEnd);
+  };
 </script>
 
 <div class="flex h-full min-h-0 w-full flex-col">
@@ -32,7 +88,14 @@
   <div class="grid h-full flex-1 grid-cols-7 grid-rows-5 divide-x divide-y divide-base-200">
     {#each gridDates as day}
       <div
+        role="gridcell"
+        tabindex="0"
+        aria-label={day
+          ? day.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
+          : undefined}
         class="group flex min-h-0 cursor-default flex-col bg-base-100 p-2 transition-colors hover:bg-base-200/30"
+        ondragover={handleDragOver}
+        ondrop={(e) => day && handleDropOnDay(e, day)}
       >
         {#if day}
           {@const key = toDayKey(day)}
