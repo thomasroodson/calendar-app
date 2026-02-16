@@ -1,104 +1,79 @@
+import { eventsApi } from "$lib/api/eventsApi";
 import type { CalendarEvent } from "$lib/types/calendar";
-import { toLocalISOString } from "$lib/utils/dateUtils";
-
-const mockEvents: CalendarEvent[] = [
-  {
-    id: "65c2a1b20f2d78b831e439df",
-    title: "Sprint Planning",
-    description: "Reviewing the backlog for the next two weeks",
-    startDate: "2026-02-09T09:00:00",
-    endDate: "2026-02-09T10:30:00",
-    color: "#3b82f6",
-    createdAt: "2026-02-01T10:00:00",
-    updatedAt: "2026-02-01T10:00:00"
-  },
-  {
-    id: "65c2a1c50f2d78b831e439e0",
-    title: "Client Workshop",
-    description: "Finalizing the UI requirements",
-    startDate: "2026-02-11T14:00:00",
-    endDate: "2026-02-11T16:00:00",
-    color: "#8b5cf6",
-    createdAt: "2026-02-02T11:00:00",
-    updatedAt: "2026-02-02T11:00:00"
-  },
-  {
-    id: "65c2a1c50f2d78b831e439e1",
-    title: "1:1",
-    startDate: "2026-02-11T10:00:00",
-    endDate: "2026-02-11T10:30:00",
-    color: "#10b981",
-    createdAt: "2026-02-02T11:00:00",
-    updatedAt: "2026-02-02T11:00:00"
-  },
-  {
-    id: "65c2a1c50f2d78b831e439e2",
-    title: "Design Review",
-    startDate: "2026-02-12T15:00:00",
-    endDate: "2026-02-12T16:00:00",
-    color: "#f59e0b",
-    createdAt: "2026-02-03T11:00:00",
-    updatedAt: "2026-02-03T11:00:00"
-  },
-  {
-    id: "65c2a1c50f2d78b831e439e3",
-    title: "Deploy",
-    startDate: "2026-02-13T18:00:00",
-    endDate: "2026-02-13T19:00:00",
-    color: "#ef4444",
-    createdAt: "2026-02-03T11:00:00",
-    updatedAt: "2026-02-03T11:00:00"
-  },
-  {
-    id: "65c2a1c50f2d78b831e439e4",
-    title: "Evento longo (teste)",
-    description: "Atravessa horários",
-    startDate: "2026-02-11T23:00:00",
-    endDate: "2026-02-12T01:00:00",
-    color: "#06b6d4",
-    createdAt: "2026-02-03T11:00:00",
-    updatedAt: "2026-02-03T11:00:00"
-  }
-];
 
 export const calendarStore = $state({
-  events: mockEvents,
+  events: [] as CalendarEvent[],
   loading: false,
-  currentDate: new Date("2026-02-12")
+  currentDate: new Date()
 });
 
-const nowISO = () => new Date().toISOString();
-const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+export const createEvent = async (
+  payload: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">
+) => {
+  calendarStore.loading = true;
 
-export const createEvent = (payload: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">) => {
-  const e: CalendarEvent = {
-    ...payload,
-    id: makeId(),
-    startDate: toLocalISOString(new Date(payload.startDate)),
-    endDate: toLocalISOString(new Date(payload.endDate)),
-    createdAt: nowISO(),
-    updatedAt: nowISO()
-  };
-  calendarStore.events = [e, ...calendarStore.events];
+  try {
+    const created = await eventsApi.create(payload);
+    calendarStore.events = [created, ...calendarStore.events];
+    return created;
+  } finally {
+    calendarStore.loading = false;
+  }
 };
 
-export const updateEvent = (
+export const updateEvent = async (
   id: string,
   payload: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">
 ) => {
-  calendarStore.events = calendarStore.events.map((e) =>
-    e.id === id ? { ...e, ...payload, updatedAt: nowISO() } : e
-  );
+  calendarStore.loading = true;
+
+  try {
+    const updated = await eventsApi.update(id, payload);
+    calendarStore.events = calendarStore.events.map((e) => (e.id === id ? updated : e));
+    return updated;
+  } finally {
+    calendarStore.loading = false;
+  }
 };
 
-export const deleteEvent = (id: string) => {
-  calendarStore.events = calendarStore.events.filter((e) => e.id !== id);
+export const deleteEvent = async (id: string) => {
+  calendarStore.loading = true;
+
+  try {
+    await eventsApi.remove(id);
+    calendarStore.events = calendarStore.events.filter((e) => e.id !== id);
+  } finally {
+    calendarStore.loading = false;
+  }
 };
 
-export const updateEventDates = (id: string, start: Date, end: Date) => {
-  calendarStore.events = calendarStore.events.map((ev) =>
-    ev.id === id
-      ? { ...ev, startDate: toLocalISOString(start), endDate: toLocalISOString(end) }
-      : ev
-  );
+export const updateEventDates = async (id: string, start: Date, end: Date) => {
+  calendarStore.loading = true;
+
+  try {
+    const updated = await eventsApi.update(id, {
+      // mantém os campos necessários do seu tipo
+      title: calendarStore.events.find((e) => e.id === id)?.title ?? "",
+      description: calendarStore.events.find((e) => e.id === id)?.description ?? "",
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      color: calendarStore.events.find((e) => e.id === id)?.color ?? "#2596BE"
+    });
+
+    calendarStore.events = calendarStore.events.map((e) => (e.id === id ? updated : e));
+    return updated;
+  } finally {
+    calendarStore.loading = false;
+  }
+};
+
+export const loadRange = async (start: Date, end: Date) => {
+  calendarStore.loading = true;
+
+  try {
+    const data = await eventsApi.getRange(start.toISOString(), end.toISOString());
+    calendarStore.events = data;
+  } finally {
+    calendarStore.loading = false;
+  }
 };

@@ -39,12 +39,12 @@
       : "Preencha os detalhes abaixo para criar um novo evento."
   );
 
-  const handleSubmit = (payload: SubmitPayload) => {
+  const handleSubmit = async (payload: SubmitPayload) => {
     if (mode === "edit") {
       if (!event) return;
-      updateEvent(event.id, payload);
+      await updateEvent(event.id, payload);
     } else {
-      createEvent(payload);
+      await createEvent(payload);
     }
 
     onClose();

@@ -1,15 +1,8 @@
 <script lang="ts">
   import type { CalendarEvent } from "$lib/types/calendar";
-  import { toLocalISOString } from "$lib/utils/dateUtils";
+  import type { CreateEventRequest } from "$lib/types/calendar";
 
   type Mode = "create" | "edit";
-  type SubmitPayload = {
-    title: string;
-    description?: string;
-    startDate: string;
-    endDate: string;
-    color: string;
-  };
   type Draft = {
     title: string;
     description: string;
@@ -31,8 +24,10 @@
     initialStart?: Date | null;
     initialEnd?: Date | null;
     onValidityChange?: (valid: boolean) => void;
-    onSubmit?: (payload: SubmitPayload) => void;
+    onSubmit?: (payload: CreateEventRequest) => void;
   } = $props();
+
+  const toISO = (value: string) => new Date(value).toISOString();
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -89,6 +84,18 @@
   $effect(() => {
     onValidityChange?.(isValid);
   });
+
+  const submit = () => {
+    if (!isValid) return;
+
+    onSubmit?.({
+      title: draft.title.trim(),
+      description: draft.description?.trim() || "",
+      startDate: toISO(draft.start),
+      endDate: toISO(draft.end),
+      color: draft.color
+    });
+  };
 </script>
 
 <form
@@ -96,18 +103,7 @@
   class="space-y-4"
   onsubmit={(e) => {
     e.preventDefault();
-    if (!isValid) return;
-
-    const start = toLocalISOString(new Date(draft.start));
-    const end = toLocalISOString(new Date(draft.end));
-
-    onSubmit?.({
-      title: draft.title.trim(),
-      description: draft.description.trim() || undefined,
-      startDate: start,
-      endDate: end,
-      color: draft.color
-    });
+    submit();
   }}
 >
   <label class="form-control w-full">

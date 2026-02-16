@@ -103,14 +103,9 @@
     anchorRect = null;
   };
 
-  const handleEventDrop = (id: string, start: Date, end: Date) => {
+  const handleEventDrop = (id: string, start: Date, end: Date, oldStart: Date, oldEnd: Date) => {
     const ev = calendarStore.events.find((e) => e.id === id);
     if (!ev) return;
-
-    const oldStart = new Date(ev.startDate);
-    const oldEnd = new Date(ev.endDate);
-
-    updateEventDates(id, start, end);
 
     dragAlert = {
       visible: true,
@@ -130,13 +125,12 @@
     }, 10000);
   };
 
-  const undoDrag = () => {
+  const undoDrag = async () => {
     if (!dragAlert.oldStart || !dragAlert.oldEnd) return;
 
-    updateEventDates(dragAlert.eventId, dragAlert.oldStart, dragAlert.oldEnd);
+    await updateEventDates(dragAlert.eventId, dragAlert.oldStart, dragAlert.oldEnd);
 
     dragAlert.visible = false;
-
     if (alertTimeout) clearTimeout(alertTimeout);
   };
 

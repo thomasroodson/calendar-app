@@ -6,7 +6,8 @@
   import DragUpdateAlert from "$lib/components/ui/DragUpdateAlert.svelte";
   import { ChevronLeftIcon, ChevronRightIcon } from "$lib/components/icons";
   import type { CalendarEvent } from "$lib/types/calendar";
-  import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
+  import { calendarStore, updateEventDates, loadRange } from "$lib/stores/calendar.svelte";
+
   import {
     buildEventsByDay,
     endOfDay,
@@ -31,9 +32,12 @@
     onViewChange?: (v: ViewMode) => void;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
-    onEventDrop?: (id: string, start: Date, end: Date) => void;
+    onEventDrop?: (id: string, start: Date, end: Date, oldStart: Date, oldEnd: Date) => void;
     focusRequest?: { id: string; nonce: number } | null;
   } = $props();
+
+  let loadTimeout: ReturnType<typeof setTimeout> | null = null;
+  let lastKey = "";
 
   const currentDate = $derived.by(() => calendarStore.currentDate);
   const events = $derived.by(() => calendarStore.events);
@@ -46,6 +50,28 @@
 
   const rangeStart = $derived.by(() => startOfDay(visibleDays[0]));
   const rangeEnd = $derived.by(() => endOfDay(visibleDays[visibleDays.length - 1]));
+
+  $effect(() => {
+    // rangeStart e rangeEnd precisam existir aqui
+    const start = rangeStart;
+    const end = rangeEnd;
+
+    const key = `${start.toISOString()}|${end.toISOString()}`;
+    if (key === lastKey) return;
+    lastKey = key;
+
+    if (loadTimeout) clearTimeout(loadTimeout);
+
+    loadTimeout = setTimeout(() => {
+      loadRange(start, end);
+    }, 250); // 👈 aumenta/diminui se quiser (250–400 fica ótimo)
+  });
+
+  $effect(() => {
+    return () => {
+      if (loadTimeout) clearTimeout(loadTimeout);
+    };
+  });
 
   const eventsByDay = $derived.by(() => buildEventsByDay(events, rangeStart, rangeEnd));
   const headerLabel = $derived.by(() => formatMonthYear(currentDate));
@@ -74,6 +100,24 @@
     else if (view === "week") d.setDate(d.getDate() + 7);
     else d.setMonth(d.getMonth() + 1);
     calendarStore.currentDate = d;
+  };
+
+  const handleEventDrop = async (id: string, start: Date, end: Date) => {
+    const prev = calendarStore.events.find((e) => e.id === id);
+    if (!prev) return;
+
+    // otimista: atualiza imediatamente
+    calendarStore.events = calendarStore.events.map((ev) =>
+      ev.id === id ? { ...ev, startDate: start.toISOString(), endDate: end.toISOString() } : ev
+    );
+
+    try {
+      onEventDrop?.(id, start, end, new Date(prev.startDate), new Date(prev.endDate));
+      await updateEventDates(id, start, end);
+    } catch (err) {
+      calendarStore.events = calendarStore.events.map((ev) => (ev.id === id ? prev : ev));
+      console.error(err);
+    }
   };
 </script>
 
@@ -131,7 +175,7 @@
       events={dayEvents}
       {onEmptySlotClick}
       {onEventClick}
-      {onEventDrop}
+      onEventDrop={handleEventDrop}
       {focusRequest}
     />
   {:else if view === "week"}
@@ -140,10 +184,16 @@
       {eventsByDay}
       {onEmptySlotClick}
       {onEventClick}
-      {onEventDrop}
+      onEventDrop={handleEventDrop}
       onNavigateWeek={(dir) => (dir === "prev" ? goPrev() : goNext())}
     />
   {:else}
-    <MonthView {currentDate} {eventsByDay} {onEmptySlotClick} {onEventClick} {onEventDrop} />
+    <MonthView
+      {currentDate}
+      {eventsByDay}
+      {onEmptySlotClick}
+      {onEventClick}
+      onEventDrop={handleEventDrop}
+    />
   {/if}
 </div>
