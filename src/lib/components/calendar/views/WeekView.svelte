@@ -7,13 +7,17 @@
     days,
     eventsByDay,
     onEmptySlotClick,
-    onEventClick
+    onEventClick,
+    onEventDrop
   }: {
     days: Date[];
     eventsByDay: Map<string, CalendarEvent[]>;
     onEmptySlotClick?: (start: Date) => void;
     onEventClick?: (event: CalendarEvent, rect?: DOMRect) => void;
+    onEventDrop?: (id: string, start: Date, end: Date) => void;
   } = $props();
+
+  let isDragging = $state(false);
 
   const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
   const weekDaysShort: string[] = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
@@ -21,6 +25,11 @@
   const HOUR_HEIGHT = 80;
   const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
   const MIN_EVENT_HEIGHT = 28;
+  const SNAP_MINUTES = 15;
+
+  const snapMinutes = (minutes: number) => Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
+
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
   const minutesFromOffsetY = (offsetY: number) => {
     const minutes = Math.floor((offsetY / HOUR_HEIGHT) * 60);
@@ -52,6 +61,7 @@
   };
 
   const handleEmptyClick = (e: MouseEvent, day: Date) => {
+    if (isDragging) return;
     if (!onEmptySlotClick) return;
 
     const targetEl = e.target as HTMLElement;
@@ -65,6 +75,45 @@
     const start = buildDateAtMinutes(day, minutes);
 
     onEmptySlotClick(start);
+  };
+
+  const handleDayDragOver = (e: DragEvent) => {
+    e.preventDefault(); // obrigatório para permitir drop
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDayDrop = (e: DragEvent, day: Date) => {
+    e.preventDefault();
+
+    const raw = e.dataTransfer?.getData("application/x-calendar-event");
+    if (!raw) return;
+
+    let payload: { id: string; durationMinutes: number };
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+
+    const rawMinutes = minutesFromOffsetY(offsetY);
+    const duration = Math.max(15, payload.durationMinutes);
+
+    // garante que o evento não "estoure" para fora do dia
+    const maxStart = Math.max(0, 24 * 60 - duration);
+
+    const snapped = snapMinutes(rawMinutes);
+    const startMinutes = clamp(snapped, 0, maxStart);
+
+    const newStart = buildDateAtMinutes(day, startMinutes);
+    const newEnd = new Date(newStart.getTime() + duration * 60000);
+
+    onEventDrop?.(payload.id, newStart, newEnd);
+
+    isDragging = false;
   };
 </script>
 
@@ -120,41 +169,31 @@
             class="relative h-full min-h-[1920px] cursor-default transition-colors hover:bg-base-200/5"
             role="presentation"
             onclick={(e) => handleEmptyClick(e, day)}
+            ondragover={handleDayDragOver}
+            ondrop={(e) => handleDayDrop(e, day)}
           >
             {#each dayEvents as event (event.id)}
               <div style={getEventStyle(event, day)}>
                 <div
+                  class="h-full"
                   data-event-card="true"
                   role="presentation"
+                  ondragstart={() => (isDragging = true)}
+                  ondragend={() => (isDragging = false)}
                   onclick={(ev) => {
                     ev.stopPropagation();
-
                     const el = ev.currentTarget as HTMLElement;
                     const rect = el.getBoundingClientRect();
-
                     onEventClick?.(event, rect);
                   }}
                 >
-                  <!-- MOBILE: compacto (evita esmagar título e ficar "E..") -->
-                  <div class="md:hidden">
+                  <!-- MOBILE -->
+                  <div class="h-full md:hidden">
                     <EventCard {event} stretch compact />
                   </div>
-                </div>
 
-                <!-- DESKTOP -->
-                <div
-                  data-event-card="true"
-                  role="presentation"
-                  onclick={(ev) => {
-                    ev.stopPropagation();
-
-                    const el = ev.currentTarget as HTMLElement;
-                    const rect = el.getBoundingClientRect();
-
-                    onEventClick?.(event, rect);
-                  }}
-                >
-                  <div class="hidden md:block">
+                  <!-- DESKTOP -->
+                  <div class="hidden h-full md:block">
                     <EventCard {event} stretch />
                   </div>
                 </div>

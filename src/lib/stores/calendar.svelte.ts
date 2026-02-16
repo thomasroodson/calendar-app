@@ -1,4 +1,5 @@
 import type { CalendarEvent } from "$lib/types/calendar";
+import { toLocalISOString } from "$lib/utils/dateUtils";
 
 const mockEvents: CalendarEvent[] = [
   {
@@ -73,6 +74,8 @@ export const createEvent = (payload: Omit<CalendarEvent, "id" | "createdAt" | "u
   const e: CalendarEvent = {
     ...payload,
     id: makeId(),
+    startDate: toLocalISOString(new Date(payload.startDate)),
+    endDate: toLocalISOString(new Date(payload.endDate)),
     createdAt: nowISO(),
     updatedAt: nowISO()
   };
@@ -90,4 +93,12 @@ export const updateEvent = (
 
 export const deleteEvent = (id: string) => {
   calendarStore.events = calendarStore.events.filter((e) => e.id !== id);
+};
+
+export const updateEventDates = (id: string, start: Date, end: Date) => {
+  calendarStore.events = calendarStore.events.map((ev) =>
+    ev.id === id
+      ? { ...ev, startDate: toLocalISOString(start), endDate: toLocalISOString(end) }
+      : ev
+  );
 };

@@ -5,7 +5,7 @@
   import MonthView from "./views/MonthView.svelte";
   import { ChevronLeftIcon, ChevronRightIcon } from "$lib/components/icons";
 
-  import { calendarStore } from "$lib/stores/calendar.svelte";
+  import { calendarStore, updateEventDates } from "$lib/stores/calendar.svelte";
   import {
     getWeekDays,
     getMonthGridDates,
@@ -122,9 +122,21 @@
 
 <div class="h-full overflow-hidden rounded-xl border border-base-200 bg-base-100 shadow-sm">
   {#if view === "day"}
-    <DayView date={currentDate} events={dayEvents} {onEmptySlotClick} {onEventClick} />
+    <DayView
+      date={currentDate}
+      events={dayEvents}
+      {onEmptySlotClick}
+      {onEventClick}
+      onEventDrop={(id, start, end) => updateEventDates(id, start, end)}
+    />
   {:else if view === "week"}
-    <WeekView days={visibleDays} {eventsByDay} {onEmptySlotClick} {onEventClick} />
+    <WeekView
+      days={visibleDays}
+      {eventsByDay}
+      {onEmptySlotClick}
+      {onEventClick}
+      onEventDrop={(id, start, end) => updateEventDates(id, start, end)}
+    />
   {:else}
     <MonthView {currentDate} {eventsByDay} {onEmptySlotClick} {onEventClick} />
   {/if}
