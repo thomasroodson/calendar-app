@@ -44,6 +44,8 @@
 <div
   role="button"
   tabindex="0"
+  data-testid="event-card"
+  data-event-id={event.id}
   class={`group relative flex flex-col overflow-hidden rounded-md border-l-4 shadow-sm ${
     compact ? "p-1 text-[10px] leading-tight" : "p-2 text-[11px] leading-tight"
   } ${stretch ? "h-full" : "mb-2"}`}

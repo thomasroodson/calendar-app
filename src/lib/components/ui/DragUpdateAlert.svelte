@@ -52,7 +52,12 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 px-4 py-3">
-          <button type="button" class="btn btn-ghost btn-sm" onclick={() => onClose?.()}>
+          <button
+            type="button"
+            data-testid="drag-update-alert-close"
+            class="btn btn-ghost btn-sm"
+            onclick={() => onClose?.()}
+          >
             Fechar
           </button>
 

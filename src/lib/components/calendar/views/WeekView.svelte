@@ -202,6 +202,8 @@
           <div
             class="relative h-full min-h-[1920px] cursor-default transition-colors hover:bg-base-200/5"
             role="presentation"
+            data-testid="week-day-column"
+            data-day={toDayKey(day)}
             onclick={(e) => handleEmptyClick(e, day)}
             ondragover={(e) => handleColumnEdgeDrag(e, i)}
             ondragleave={clearNavTimer}
@@ -212,6 +214,8 @@
                 <div
                   class="h-full"
                   data-event-card="true"
+                  data-testid="event-drag-handle"
+                  data-event-id={event.id}
                   role="presentation"
                   ondragstart={() => {
                     isDragging = true;

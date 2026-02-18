@@ -52,6 +52,7 @@
   <div class="fixed inset-0 z-50" role="presentation" onclick={handleBackdropClick}>
     <div
       class="rounded-2xl border border-base-200 bg-base-100 shadow-xl"
+      data-testid="event-popover"
       {style}
       role="dialog"
       aria-label="Detalhes do evento"
@@ -96,6 +97,7 @@
 
         <button
           type="button"
+          data-testid="event-edit"
           class="btn btn-sm btn-primary"
           onclick={() => event && onEdit?.(event)}
         >
@@ -104,6 +106,7 @@
 
         <button
           type="button"
+          data-testid="event-delete"
           class="btn text-error btn-ghost btn-sm"
           onclick={handleDelete}
           aria-label="Excluir evento"

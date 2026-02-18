@@ -44,7 +44,6 @@
   const setDragging = (v: boolean) => {
     isDraggingGlobal = v;
 
-    // terminou o drag: se ficou um range pendente, carrega agora
     if (!v && pendingRange) {
       const { start, end } = pendingRange;
       pendingRange = null;
@@ -65,7 +64,6 @@
   const rangeEnd = $derived.by(() => endOfDay(visibleDays[visibleDays.length - 1]));
 
   $effect(() => {
-    // rangeStart e rangeEnd precisam existir aqui
     const start = rangeStart;
     const end = rangeEnd;
 
@@ -140,12 +138,10 @@
     try {
       const updated = await updateEventDates(id, start, end);
 
-      // garante que o evento existe na lista mesmo se algum loadRange tiver limpado antes
       if (updated && !calendarStore.events.some((e) => e.id === id)) {
         calendarStore.events = [updated, ...calendarStore.events];
       }
 
-      // ✅ agora sim recarrega o range atual (se estava pendente)
       if (pendingRange) {
         const { start: rs, end: re } = pendingRange;
         pendingRange = null;
@@ -161,18 +157,21 @@
 </script>
 
 <header
+  data-testid="calendar-header"
   class="calendar-header mb-6 flex items-center justify-between rounded-2xl border border-base-200 bg-base-100 px-4 py-4 shadow-sm md:px-6"
 >
   <div class="flex min-w-0 items-center gap-4">
     <div
+      data-testid="calendar-day-badge"
       class="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-content shadow-sm md:h-10 md:w-10"
     >
       {dayBadge}
     </div>
 
-    <h2 class="font-normal md:text-xl">{headerLabel}</h2>
+    <h2 class="font-normal md:text-xl" data-testid="calendar-header-label">{headerLabel}</h2>
 
     <button
+      data-testid="nav-today"
       class="btn ml-2 hidden border border-base-300 px-4 btn-ghost btn-sm lg:inline-flex"
       onclick={goToday}
       type="button"
@@ -184,6 +183,7 @@
   <div class="flex flex-col items-center gap-4 md:flex-row">
     <select
       bind:value={view}
+      data-testid="view-select"
       class="select-bordered select select-sm font-medium"
       onchange={handleSelectChange}
     >
@@ -194,11 +194,17 @@
 
     <div class="flex items-center gap-4">
       <div class="join border border-base-200">
-        <button class="btn join-item btn-ghost btn-sm" onclick={goPrev} type="button"
-          ><ChevronLeftIcon size={16} /></button
+        <button
+          data-testid="nav-prev"
+          class="btn join-item btn-ghost btn-sm"
+          onclick={goPrev}
+          type="button"><ChevronLeftIcon size={16} /></button
         >
-        <button class="btn join-item btn-ghost btn-sm" onclick={goNext} type="button"
-          ><ChevronRightIcon size={16} /></button
+        <button
+          data-testid="nav-next"
+          class="btn join-item btn-ghost btn-sm"
+          onclick={goNext}
+          type="button"><ChevronRightIcon size={16} /></button
         >
       </div>
 

@@ -120,6 +120,7 @@
     </div>
     <input
       type="text"
+      data-testid="event-title"
       class="input-bordered input w-full"
       placeholder="Ex.: Reunião com equipe"
       bind:value={draft.title}
@@ -143,7 +144,12 @@
       <div class="label">
         <span class="label-text">Início</span>
       </div>
-      <input type="datetime-local" class="input-bordered input w-full" bind:value={draft.start} />
+      <input
+        type="datetime-local"
+        data-testid="event-start"
+        class="input-bordered input w-full"
+        bind:value={draft.start}
+      />
     </label>
 
     <label class="form-control w-full">
@@ -152,11 +158,12 @@
       </div>
       <input
         type="datetime-local"
+        data-testid="event-end"
         class={`input-bordered input w-full ${isInvalidRange ? "input-error" : ""}`}
         bind:value={draft.end}
       />
       {#if isInvalidRange}
-        <p class="mt-1 text-xs text-error">O horário final deve ser maior que o inicial.</p>
+        <p class="mt-1 text-xs text-error" data-testid="event-range-error">O horário final deve ser maior que o inicial.</p>
       {/if}
     </label>
   </div>

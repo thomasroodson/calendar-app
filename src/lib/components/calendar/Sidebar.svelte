@@ -51,6 +51,7 @@
 >
   <button
     type="button"
+    data-testid="btn-create-event-sidebar"
     class="group btn flex rounded-2xl border-none bg-base-100 px-6 normal-case shadow-md btn-lg hover:bg-base-200"
     onclick={onCreate}
   >
@@ -82,6 +83,7 @@
         {:else}
           <button
             type="button"
+            data-testid="sidebar-day-{day}"
             class={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition-colors ${
               day === activeDay
                 ? "pointer-events-none bg-primary text-primary-content"

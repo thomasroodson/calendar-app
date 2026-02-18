@@ -260,7 +260,7 @@
   <title>Agenda</title>
 </svelte:head>
 
-<div class="flex h-screen flex-col overflow-hidden bg-base-200">
+<div class="flex h-screen flex-col overflow-hidden bg-base-200" data-testid="agenda-page">
   <header
     class="flex items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-4 py-3"
   >
@@ -295,6 +295,7 @@
           <input
             bind:this={searchInputEl}
             id="global-search"
+            data-testid="global-search"
             type="search"
             placeholder="Pesquisar eventos"
             class="input-bordered input h-11 max-w-[560px] min-w-[290px] rounded-full border-base-300 bg-base-100 pr-4 pl-12 transition-all focus:border-primary md:w-[min(560px,90vw)]"
@@ -310,7 +311,7 @@
         </div>
 
         {#if isSearchOpen && searchQuery.trim()}
-          <div class="absolute top-full right-0 left-0 z-50 mt-2">
+          <div class="absolute top-full right-0 left-0 z-50 mt-2" data-testid="search-results">
             <div class="overflow-hidden rounded-2xl border border-base-200 bg-base-100 shadow-xl">
               {#if searchResults.length === 0}
                 <div class="px-4 py-3 text-sm text-base-content/60">Nenhum evento encontrado.</div>

@@ -1,4 +1,4 @@
-const BASE_URL = "https://localhost:7023";
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export type ApiOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
